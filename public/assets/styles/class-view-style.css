@@ -1,0 +1,267 @@
+.class-name {
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.class-name::after {
+    content: " (" attr(members) " Thành viên)";
+}
+
+.class-view-detail {
+    border: 1px solid lightgray;
+    transition: .5s;
+}
+
+.class-view-detail summary {
+    display: flex;
+    flex-direction: row;
+}
+
+.class-view-detail summary h3 {
+    margin-top: 5px !important;
+    width: 100%;
+    cursor: pointer;
+}
+
+.chooses {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-inline: 15px;
+    row-gap: 10px;
+    column-gap: 15px;
+    text-transform: capitalize;
+}
+
+body .open-side-nav .chooses {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.chooses a.btn {
+    width: 100%;
+    margin: 0px;
+    display: inline-block;
+    text-align: center;
+}
+
+.chooses a.btn.red {
+    color: rgb(255, 60, 60);
+}
+
+.group-title {
+    align-items: center;
+}
+
+.group {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.group-name::after {
+    display: block;
+    content: "(" attr(data-group-quantity) "/" attr(data-group-limit) ") ►";
+}
+
+.list-std span {
+    text-decoration: none;
+    display: block;
+    margin-left: 10px;
+    margin-bottom: 3px;
+    padding: 1px;
+    color: var(--btn-color);
+    text-transform: uppercase;
+}
+
+.list-std span::before {
+    content: attr(data-sid) " - ";
+}
+
+.exercises, .test, .documents {
+    margin-inline: 20px;
+    margin-block: 5px;
+}
+
+.exercise.unsubmitted:not([open])::after {
+    content: "*Chưa nộp bài";
+    font-weight: 600;
+    color: rgb(180, 0, 0);
+}
+
+.documents {
+    background-color: #f4f4f4;
+    padding: 10px
+}
+
+.documents a {
+    display: block;
+    text-decoration: none;
+    width: fit-content;
+    min-width: 100px;
+}
+
+.documents a::before {
+    content: "►  ";
+}
+
+.documents a:hover {
+    text-decoration: underline;
+}
+
+.exercise, .test {
+    transition: .3s;
+    box-shadow: 1px 1px 5px var(--btn-color);
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+/* :is(.exercise, .test):hover {
+    box-shadow: 0px 0px 15px var(--btn-color);
+} */
+
+:is(.exercise, .test) summary {
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.exercise-name, .test-name {
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--btn-color);
+}
+
+:is(.exercise, .test) summary .icon {
+    width: 30px;
+    height: 30px;
+    background-color: #f4f4f4;
+    border-radius: 5px;
+    padding: 1px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    margin: 0 5px;
+    color: var(--btn-color);
+}
+
+:is(.exercise, .test) summary .icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+:is(.exercise, .test) summary .icon:hover {
+    background-color: lightgray;
+}
+
+p:is(.desc, .attach, .limit, .status, .student-status){
+    display: block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #f4f4f4;
+    /* border: 1px solid black; */
+    margin-bottom: 5px;
+}
+
+p.attach a {
+    display: block;
+    text-decoration: none;
+    width: fit-content;
+}
+
+p.attach a:hover {
+    text-decoration: underline;
+}
+
+p.attach a::before {
+    content: "► ";
+}
+
+p.desc::before {
+    display: block;
+    content: "Mô tả:";
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+p.attach::before {
+    display: block;
+    content: "File đính kèm:";
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+p.limit::before {
+    display: block;
+    content: "Thời hạn: " attr(time);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+p.status::before {
+    display: block;
+    content: "Đã nộp: " attr(current) "/" attr(limit);
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--btn-color);
+}
+
+h2.ttitle {
+    margin-bottom: 25px !important;
+    background-color: white !important;
+}
+
+p.student-status.submitted::before {
+    content: "Trạng thái: Đã nộp bài";
+    color: green;
+}
+
+p.student-status.submitted-late::before {
+    content: "Trạng thái: Nộp bài trễ";
+    color: rgb(190, 130, 0);
+}
+
+p.student-status.unsubmitted::before {
+    content: "Trạng thái: Chưa nộp bài";
+    color: rgb(180, 0, 0);
+}
+
+p.student-status:is(.submitted, .submitted-late, .unsubmitted)::before {
+    font-weight: 600;
+}
+
+.group-title.un-joined h3::after {
+    content: "  *Chưa tham gia";
+    color: rgb(180, 0, 0);
+}
+
+.group-title.joined h3::after {
+    content: "  *Thuộc nhóm " attr(subgroup);
+    color: green;
+}
+
+@media screen and (max-width: 730px) {
+    .exercises, .test, .documents {
+        margin: 5px;
+    }
+
+    .chooses {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 5px;
+    }
+
+    .class-name {
+        margin-bottom: 15px;
+    }
+
+    .class-view-detail {
+        margin-bottom: 10px !important;
+    }
+
+    .title {
+        margin: 5px;
+    }
+}

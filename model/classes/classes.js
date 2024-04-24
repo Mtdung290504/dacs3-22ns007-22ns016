@@ -19,20 +19,6 @@ class Account {
     }
 }
 
-//Test Account:
-// (async()=>{
-//     const hashedPasswordFromDatabase = await bcrypt.hash('password123', saltRounds);
-//     const account = new Account('123', 'user@example.com', hashedPasswordFromDatabase, 'password123');
-
-//     const isMatch = await account.checkPassword();
-//     if (isMatch) {
-//         console.log('Mật khẩu đúng');
-//     } else {
-//         console.log('Mật khẩu sai');
-//     }    
-// })();
-
-
 class User {
     constructor(id, name, phoneNumber, email) {
         Object.assign(this, { id, name, phoneNumber, email });

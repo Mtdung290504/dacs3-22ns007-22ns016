@@ -37,21 +37,21 @@ class Database {
             console.log('loginUser - QueryResult:', queryResult, '-----------------------------\n');
             const resultSet = queryResult[0][0];
             
-            if(resultSet.length != 1)
-                return null;
+            if(resultSet.length == 0)
+                throw new Error('Tên tài khoản không chính xác')
 
             const result = resultSet[0];
             const passwordIsCorrect = await new Account(result.id, result.user_login_id, result.password, enteredPassword).checkPassword();
 
             if(passwordIsCorrect) {
-                const data = [result.id, result.name, result.phone_number, result.email]
+                const userData = [result.id, result.name, result.phone_number, result.email]
                 if(result.is_lecturer == 1)
-                    return new Lecturer(...data);
+                    return new Lecturer(...userData);
                 else
-                    return new Student(...data);
+                    return new Student(...userData);
             }
 
-            return null;            
+            throw new Error('Mật khẩu không chính xác');
         } catch (error) {
             throw error;
         }
@@ -76,18 +76,21 @@ async function signUpUser() {
         console.error('Error signing up:', error.message);
     }
 }
-async function loginUser() {
+async function loginUser(tk, mk) {
     try {
-        const user = await database.loginUser('lecturer_dung', '290504');
-        console.log(user instanceof Lecturer);
-        console.log(user instanceof Student);
+        const user = await database.loginUser(...arguments);
+        // console.log(user instanceof Lecturer);
+        // console.log(user instanceof Student);
+        console.log(user);
         database.close();
     } catch (error) {
-        console.error(error);
+        console.log(error.message);
     }
 }
 
 // signUpUser();
-loginUser();
+// loginUser('lecturdmm', '290504');
+// loginUser('lecturer_dung', '280504');
+// loginUser('lecturer_dung', '290504');
 
 module.exports = Database

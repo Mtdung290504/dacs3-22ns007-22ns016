@@ -44,6 +44,8 @@ CREATE PROCEDURE signup(
     DECLARE inserted_id int;
     DECLARE existing_login_id varchar(100);
     DECLARE should_exit BOOLEAN DEFAULT FALSE;
+	DECLARE is_email BOOLEAN DEFAULT FALSE;
+    DECLARE is_phone BOOLEAN DEFAULT FALSE;
 
     -- Kiểm tra xem login_id đã tồn tại chưa
     SELECT login_id INTO existing_login_id FROM user_login_id WHERE login_id = user_login_name LIMIT 1;
@@ -446,9 +448,11 @@ CREATE PROCEDURE create_test(
     in description text,
     in quest_category_id int,
     in number_quest_of_tests int
-)BEGIN
+)
+BEGIN
     DECLARE total_quests int;
     DECLARE test_id int;
+    DECLARE should_exit BOOLEAN DEFAULT FALSE;
 
     -- Kiểm tra số lượng câu hỏi trong quest_category
     SELECT COUNT(*) INTO total_quests
@@ -459,26 +463,26 @@ CREATE PROCEDURE create_test(
     IF total_quests < number_quest_of_tests THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Số lượng câu hỏi không đủ để tạo bài kiểm tra.';
-        LEAVE create_test_proc;  -- Sử dụng nhãn để thoát
+        SET should_exit = TRUE;
     END IF;
 
-    -- Tạo bài kiểm tra
-    INSERT INTO tests(class_id, start_time, end_time, name, description)
-    VALUES(class_id, start_time, end_time, name, description);
+    -- Nếu không thoát do điều kiện không đủ câu hỏi
+    IF should_exit = FALSE THEN
+        -- Tạo bài kiểm tra
+        INSERT INTO tests(class_id, start_time, end_time, name, description)
+        VALUES(class_id, start_time, end_time, name, description);
 
-    -- Lấy ID của bài kiểm tra vừa được tạo
-    SET test_id = LAST_INSERT_ID();
+        -- Lấy ID của bài kiểm tra vừa được tạo
+        SET test_id = LAST_INSERT_ID();
 
-    -- Chọn ngẫu nhiên các câu hỏi từ quest_category và thêm vào test_quests
-    INSERT INTO test_quests(test_id, quest_id)
-    SELECT test_id, id
-    FROM quests
-    WHERE quest_category_id = quest_category_id
-    ORDER BY RAND()
-    LIMIT number_quest_of_tests;
-
-    -- Nhãn cho thủ tục
-    create_test_proc: ;
+        -- Chọn ngẫu nhiên các câu hỏi từ quest_category và thêm vào test_quests
+        INSERT INTO test_quests(test_id, quest_id)
+        SELECT test_id, id
+        FROM quests
+        WHERE quest_category_id = quest_category_id
+        ORDER BY RAND()
+        LIMIT number_quest_of_tests;
+    END IF;
 END $
 
 -- get_all_questions_in_test(test_id)

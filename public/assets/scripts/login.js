@@ -18,19 +18,35 @@ const [
     'label[for="re-signup-pw"]',
 ].map((selector) => document.querySelector(selector));
 
-const [loginForm, loginId, loginPassword, loginStatusLabel] = [
+const [
+    loginForm,
+    loginId,
+    loginPassword,
+    displayPasswordBtn,
+    loginStatusLabel,
+] = [
     "#login-form",
     "#login-id",
     "#login-pw",
+    "#remember",
     'label[for="aaa"]',
 ].map((selector) => document.querySelector(selector));
 
 signUpPassword.addEventListener("input", (event) => {
     const value = event.target.value;
 
-    signupPasswordStatusLabel.classList.remove('not-satisfy', "weak", "medium", "strong");
+    signupPasswordStatusLabel.classList.remove(
+        "not-satisfy",
+        "weak",
+        "medium",
+        "strong"
+    );
     if (!value) return;
     signupPasswordStatusLabel.classList.add(checkPassword(value));
+});
+
+displayPasswordBtn.addEventListener("input", () => {
+    loginPassword.type = displayPasswordBtn.checked ? "text" : "password";
 });
 
 signUpForm.addEventListener("submit", async (event) => {
@@ -40,13 +56,13 @@ signUpForm.addEventListener("submit", async (event) => {
 
     if (!checkUsername(signUpId.value)) {
         signUpIdStatusLabel.textContent = "Tài khoản không đúng định dạng";
-        signUpId.value = '';
+        signUpId.value = "";
         return;
     }
 
     if (signUpPassword.value != reSignUpPassword.value) {
         reSignUpPasswordStatusLabel.textContent = "Mật khẩu nhập lại không khớp";
-        signUpPassword.value = '';
+        signUpPassword.value = "";
         return;
     }
 
@@ -55,7 +71,7 @@ signUpForm.addEventListener("submit", async (event) => {
         "signup-name": signUpName.value,
         "signup-id": signUpId.value,
         "signup-pw": signUpPassword.value,
-    }
+    };
     for (const key in data) {
         if (Object.hasOwnProperty.call(data, key)) {
             formData.append(`${key}`, data[key]);
@@ -63,44 +79,51 @@ signUpForm.addEventListener("submit", async (event) => {
     }
 
     try {
-        const response = await fetch('/signup', {
-            method: 'POST', body: formData
+        const response = await fetch("/signup", {
+            method: "POST",
+            body: formData,
         });
 
         if (response.ok) {
-            const {e, m} = await response.json();
+            const { e, m } = await response.json();
+            if (m === "ok") window.location.href = "/";
             if (e) {
                 signUpIdStatusLabel.textContent = e;
-                signUpId.value = '';
-            } 
+                signUpId.value = "";
+            }
         }
     } catch (error) {
         console.error(error);
     }
 });
 
-loginForm.addEventListener('submit', async (event) => {
+loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    loginStatusLabel.classList.remove('error');
-    if(!checkUsername(loginId.value) || checkPassword(loginPassword.value) == 'not-satisfy') {
-        loginStatusLabel.classList.add('error');
+    loginStatusLabel.classList.remove("error");
+    if (
+        !checkUsername(loginId.value) ||
+        checkPassword(loginPassword.value) == "not-satisfy"
+    ) {
+        loginStatusLabel.classList.add("error");
         return;
     }
 
     const formData = new FormData();
-    formData.append('login-id', loginId.value);
-    formData.append('login-password', loginPassword.value);
+    formData.append("login-id", loginId.value);
+    formData.append("login-password", loginPassword.value);
 
     try {
-        const response = await fetch('/login', {
-            method: 'POST', body: formData
+        const response = await fetch("/login", {
+            method: "POST",
+            body: formData,
         });
 
         if (response.ok) {
-            const {e, m} = await response.json();
+            const { e, m } = await response.json();
+            if (m === "ok") window.location.href = "/";
             if (e) {
-                loginStatusLabel.classList.add('error');
+                loginStatusLabel.classList.add("error");
             }
         }
     } catch (error) {

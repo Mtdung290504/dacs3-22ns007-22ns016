@@ -1,4 +1,4 @@
-const { Account, User, Student, Lecturer } = require('./classes');
+const { Account, User, Student, Lecturer } = require('../classes/classes');
 const mysql = require('mysql2/promise');
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -16,7 +16,7 @@ class Database {
         });
     }
 
-    async lecturerSignUp(isLecturer, userName, userLoginName, userPassword) {
+    async lecturerSignUp(isLecturer, { userName, userLoginName, userPassword }) {
         try {
             userPassword = await bcrypt.hash(userPassword, saltRounds);
             const [resultSetHeader] = await this.pool.execute('CALL SIGNUP(?, ?, ?, ?, @student_id)', [isLecturer, userName, userLoginName, userPassword]);
@@ -31,7 +31,7 @@ class Database {
         }
     }
 
-    async loginUser(loginId, enteredPassword) {
+    async loginUser({ loginId, enteredPassword }) {
         try {
             const queryResult = await this.pool.query('CALL LOGIN(?)', [loginId]);
             console.log('loginUser - QueryResult:', queryResult, '-----------------------------\n');

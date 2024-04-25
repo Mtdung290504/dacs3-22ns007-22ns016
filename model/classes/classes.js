@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
 
 class Account {
     constructor(userId, loginId, hashedPassword, enteredPassword) {

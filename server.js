@@ -6,8 +6,12 @@ const port = 3000;
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const middleWares = require('./middle-wares');
+const Database = require('./model/database/database');
+const upload = multer()
+const db = new Database();
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: '22ns',
     resave: false,
@@ -19,18 +23,53 @@ app.get('/login' , (req , res)=>{
     res.render('login');
 })
 
-app.post('/signup' , (req , res)=>{
-    const data = req.body;
-    console.log(data);
-    res.json({a: 3, b: 10});
+app.post('/signup', upload.none(), async (req , res)=>{
+    let e, m = null;
+
+    const submittedData = {
+        userName: req.body['signup-name'],
+        userLoginName: req.body["signup-id"],
+        userPassword: req.body["signup-pw"]
+    };
+
+    try {
+        const result = await db.lecturerSignUp(1, submittedData);
+        if(result)
+            m = 'Đăng ký thành công';
+    } catch (error) {
+        if(error.message.toLowerCase().includes('đã tồn tại'))
+            e = error.message;
+        else {
+            e = 'Internal server error';
+            console.error('Error signing up user:', error.message);
+        }
+    }
+
+    res.json({ e, m });
 })
 
-app.post('/login' , (req , res)=>{
+app.post('/login', upload.none(), async (req , res)=>{
+    let e, m = null;
 
+    const submittedData = {
+        loginId: req.body['login-id'],
+        enteredPassword: req.body["login-password"]
+    };
+
+    try {
+        const user = await db.loginUser(submittedData);
+        // console.log(user instanceof Lecturer);
+        // console.log(user instanceof Student);
+        console.log(user);
+    } catch (error) {
+        e = error.message;
+        console.error(error);
+    }
+
+    res.json({ e, m });
 })
 
 app.use(middleWares.requireLogin);
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/", (req, res) => {
     res.send('hello');

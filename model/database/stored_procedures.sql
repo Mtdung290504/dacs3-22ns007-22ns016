@@ -57,8 +57,18 @@ CREATE PROCEDURE signup(
     IF should_exit = FALSE THEN
         IF is_lecturer = 1 THEN
             BEGIN
+                SET is_email = user_login_name REGEXP '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';
+                SET is_phone = user_login_name REGEXP '^[0-9]{10,15}$';
+
                 INSERT INTO users(is_lecturer, name, password) VALUES (is_lecturer, user_name, user_password);
                 SET inserted_id = last_insert_id();
+
+                IF is_email THEN
+                    UPDATE users SET email = user_login_name WHERE id = inserted_id;
+                ELSEIF is_phone THEN
+                    UPDATE users SET phone_number = user_login_name WHERE id = inserted_id;
+                END IF;
+                
                 INSERT INTO user_login_id(user_id, login_id) VALUES (inserted_id, user_login_name);
                 INSERT INTO lecturers(id) VALUES (inserted_id);
             END;

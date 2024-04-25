@@ -3,6 +3,7 @@ const [
     signUpName,
     signUpPassword,
     signUpId,
+    signUpIdStatusLabel,
     signupPasswordStatusLabel,
     reSignUpPassword,
     reSignUpPasswordStatusLabel,
@@ -11,6 +12,7 @@ const [
     "#signup-name",
     "#signup-pw",
     "#signup-id",
+    'label[for="signup-id"]',
     'label[for="signup-pw"]',
     "#re-signup-pw",
     'label[for="re-signup-pw"]',
@@ -20,14 +22,14 @@ const [loginForm, loginId, loginPassword, loginStatusLabel] = [
     "#login-form",
     "#login-id",
     "#login-pw",
-    ".error",
+    'label[for="aaa"]',
 ].map((selector) => document.querySelector(selector));
 
-signUpPassword.addEventListener("input", (event) => { 
+signUpPassword.addEventListener("input", (event) => {
     const value = event.target.value;
 
     signupPasswordStatusLabel.classList.remove('not-satisfy', "weak", "medium", "strong");
-    if(!value) return;
+    if (!value) return;
     signupPasswordStatusLabel.classList.add(checkPassword(value));
 });
 
@@ -36,8 +38,15 @@ signUpForm.addEventListener("submit", async (event) => {
 
     if (checkPassword(signUpPassword.value) === "not-satisfy") return;
 
+    if (!checkUsername(signUpId.value)) {
+        signUpIdStatusLabel.textContent = "Tài khoản không đúng định dạng";
+        signUpId.value = '';
+        return;
+    }
+
     if (signUpPassword.value != reSignUpPassword.value) {
         reSignUpPasswordStatusLabel.textContent = "Mật khẩu nhập lại không khớp";
+        signUpPassword.value = '';
         return;
     }
 
@@ -49,7 +58,7 @@ signUpForm.addEventListener("submit", async (event) => {
     }
     for (const key in data) {
         if (Object.hasOwnProperty.call(data, key)) {
-            formData.append(key, data[key]);
+            formData.append(`${key}`, data[key]);
         }
     }
 
@@ -58,14 +67,53 @@ signUpForm.addEventListener("submit", async (event) => {
             method: 'POST', body: formData
         });
 
-        if(response.ok) {
-            const data = await response.json();
-            console.log(data);
+        if (response.ok) {
+            const {e, m} = await response.json();
+            if (e) {
+                signUpIdStatusLabel.textContent = e;
+                signUpId.value = '';
+            } 
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 });
+
+loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    loginStatusLabel.classList.remove('error');
+    if(!checkUsername(loginId.value) || checkPassword(loginPassword.value) == 'not-satisfy') {
+        loginStatusLabel.classList.add('error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('login-id', loginId.value);
+    formData.append('login-password', loginPassword.value);
+
+    try {
+        const response = await fetch('/login', {
+            method: 'POST', body: formData
+        });
+
+        if (response.ok) {
+            const {e, m} = await response.json();
+            if (e) {
+                loginStatusLabel.classList.add('error');
+            }
+        }
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+function checkUsername(username) {
+    const phoneRegex = /^[0-9]{10}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    return phoneRegex.test(username) || emailRegex.test(username);
+}
 
 function checkPassword(password) {
     const [regex, status] = [

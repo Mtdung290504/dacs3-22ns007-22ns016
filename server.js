@@ -1,5 +1,6 @@
 const express = require("express");
 const session = require("express-session");
+const fs = require('fs');
 const path = require("path");
 const app = express();
 const port = 3000;
@@ -8,9 +9,10 @@ const bodyParser = require("body-parser");
 const middleWares = require("./middle-wares");
 const Database = require("./model/database/database");
 const { Lecturer } = require("./model/classes/classes");
-const upload = multer();
+const formUpload = multer();
 const db = new Database();
 
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
@@ -31,7 +33,7 @@ app.get("/login", (req, res) => {
     res.render("login");
 });
 
-app.post("/signup", upload.none(), async (req, res) => {
+app.post("/signup", formUpload.none(), async (req, res) => {
     let e,
         m = null;
 
@@ -53,7 +55,7 @@ app.post("/signup", upload.none(), async (req, res) => {
             req.session.role = user instanceof Lecturer ? 1 : 0;
             console.log("User logged in:", user);
 
-            m = 'ok';
+            m = "ok";
         }
     } catch (error) {
         if (error.message.toLowerCase().includes("đã tồn tại")) e = error.message;
@@ -66,7 +68,7 @@ app.post("/signup", upload.none(), async (req, res) => {
     res.json({ e, m });
 });
 
-app.post("/login", upload.none(), async (req, res) => {
+app.post("/login", formUpload.none(), async (req, res) => {
     let e,
         m = null;
 
@@ -82,7 +84,7 @@ app.post("/login", upload.none(), async (req, res) => {
         req.session.role = user instanceof Lecturer ? 1 : 0;
         console.log("User logged in:", user);
 
-        m = 'ok';
+        m = "ok";
     } catch (error) {
         e = error.message;
         console.error(error);
@@ -92,6 +94,32 @@ app.post("/login", upload.none(), async (req, res) => {
 });
 
 app.use(middleWares.requireLogin);
+
+const userStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const userId = req.session.user.id;
+        const userUploadsDir = path.join(__dirname, `public`, 'uploads', userId);
+
+        if (!fs.existsSync(userUploadsDir)) {
+            fs.mkdirSync(userUploadsDir, { recursive: true });
+        }
+
+        cb(null, userUploadsDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
+    },
+});
+
+const userUpload = multer({ storage: userStorage });
+
+app.get("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) console.error("Error destroying session:", err);
+
+        res.redirect("/login");
+    });
+});
 
 app.get("/", (req, res) => {
     res.send("hello");

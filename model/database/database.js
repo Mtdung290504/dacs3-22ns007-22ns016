@@ -57,6 +57,30 @@ class Database {
         }
     }
 
+    // Trước khi gọi phải check role
+    async createClass(lecturerId, className) {
+        try {
+            const [resultSetHeader] = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
+            console.log('lecturerCreateClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+
+            return resultSetHeader.affectedRows == 1 ? true : false;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getAllClass(userId, role = 1) {
+        try {
+            const procedureCall = `CALL ${role == 1 ? 'get_all_lecturer_classes' : 'get_all_student_classes'} (?)`;
+            const queryResult = await this.pool.query(procedureCall, [userId]);
+
+            console.log('getAllClass - QueryResult:', queryResult, '-----------------------------\n');
+            return queryResult[0][0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async close() {
         try {
             await this.pool.end();
@@ -67,30 +91,22 @@ class Database {
     }
 }
 
-const database = new Database();
-async function signUpUser() {
-    try {
-        const result = await database.lecturerSignUp(1, 'Dũng Dz', 'lecturer_dung', '290504');
-        console.log(result ? 'Signup successfully!' : 'Internal Server Error!'); // Log kết quả trả về từ hàm lecturerSignUp
-    } catch (error) {
-        console.error('Error signing up:', error.message);
-    }
-}
-async function loginUser(tk, mk) {
-    try {
-        const user = await database.loginUser(...arguments);
-        // console.log(user instanceof Lecturer);
-        // console.log(user instanceof Student);
-        console.log(user);
-        database.close();
-    } catch (error) {
-        console.log(error.message);
-    }
-}
+(async(testing = false)=>{
+    if(!testing)
+        return;
+    const database = new Database();
 
-// signUpUser();
-// loginUser('lecturdmm', '290504');
-// loginUser('lecturer_dung', '280504');
-// loginUser('lecturer_dung', '290504');
+    const listOfClasses = await database.getAllClass('1', 1);
+    console.log(listOfClasses);
+
+    const user = await database.loginUser({ loginId: 'dungmt.22ns@vku.udn.vn', enteredPassword: 'mtdung2004' });
+    console.log(user);
+
+    const successCreateClass = await database.createClass(1, 'Lập trình di động (10)');
+    console.log(successCreateClass);
+
+    const classList = await database.getAllClass(1);
+    console.log(classList);
+})()
 
 module.exports = Database

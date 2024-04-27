@@ -57,11 +57,11 @@ CREATE PROCEDURE signup(
     END IF;
 
     IF should_exit = FALSE THEN
+        SET is_email = user_login_name REGEXP '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';
+        SET is_phone = user_login_name REGEXP '^[0-9]{10,15}$';
+
         IF is_lecturer = 1 THEN
             BEGIN
-                SET is_email = user_login_name REGEXP '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';
-                SET is_phone = user_login_name REGEXP '^[0-9]{10,15}$';
-
                 INSERT INTO users(is_lecturer, name, password) VALUES (is_lecturer, user_name, user_password);
                 SET inserted_id = last_insert_id();
 
@@ -79,6 +79,13 @@ CREATE PROCEDURE signup(
                 INSERT INTO users(name, password) VALUES (user_name, user_password);
                 SET inserted_id = last_insert_id();
                 SET student_id = last_insert_id();
+
+                IF is_email THEN
+                    UPDATE users SET email = user_login_name WHERE id = inserted_id;
+                ELSEIF is_phone THEN
+                    UPDATE users SET phone_number = user_login_name WHERE id = inserted_id;
+                END IF;
+
                 INSERT INTO user_login_id(user_id, login_id) VALUES (inserted_id, user_login_name);
                 INSERT INTO students(id) VALUES (inserted_id);
             END;
@@ -133,20 +140,18 @@ create procedure login(
     WHERE ul.login_id = user_login_name;
 end $
 
--- create_class (lecturer_id, class_name) *return class_id
+-- create_class (lecturer_id, class_name)
 create procedure create_class(
     in lecturer_id int,
-    in class_name nvarchar(50),
-    out class_id int
+    in class_name nvarchar(50)
 ) begin
     INSERT INTO classes(name, lecturer_id) VALUES (class_name, lecturer_id);
-    SET class_id = LAST_INSERT_ID();
 end $
 
 -- delete_class *nợ, dữ liệu liên quan quá nhiều, xử lý sau.
 
--- get_all_classes (lecturer_id)
-create procedure get_all_classes(
+-- get_all_lecturer_classes (lecturer_id)
+create procedure get_all_lecturer_classes(
     in lecturer_id int
 ) begin
     SELECT c.id, c.name
@@ -154,6 +159,17 @@ create procedure get_all_classes(
     JOIN lecturers l ON c.lecturer_id = l.id
     WHERE l.id = lecturer_id;
 end $
+
+-- get_all_student_classes (student_id)
+CREATE PROCEDURE get_all_student_classes(
+    in student_id int
+)BEGIN
+    SELECT classes.id, classes.name, lecturers.id AS lecturer_id, lecturers.name AS lecturer_name
+    FROM classes
+    INNER JOIN classes_n_students ON classes.id = classes_n_students.class_id
+    INNER JOIN lecturers ON classes.lecturer_id = lecturers.id
+    WHERE classes_n_students.student_id = student_id;
+END $
 
 -- get_all_student_of_class (class_id)
 CREATE PROCEDURE get_all_student_of_class(
@@ -448,8 +464,7 @@ CREATE PROCEDURE create_test(
     in description text,
     in quest_category_id int,
     in number_quest_of_tests int
-)
-BEGIN
+)BEGIN
     DECLARE total_quests int;
     DECLARE test_id int;
     DECLARE should_exit BOOLEAN DEFAULT FALSE;
@@ -562,7 +577,6 @@ END $
 -- create_split_group()
 -- create_sub_group_of_group()
 -- join_sub_group()
-
 
 delimiter ;
 

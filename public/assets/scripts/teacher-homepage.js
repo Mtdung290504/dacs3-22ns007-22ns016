@@ -53,6 +53,34 @@ document.querySelectorAll('.icon.download-icon').forEach(icon => {
     });
 });
 
+document.querySelector('#create-class').addEventListener('click', async ()=>{
+    const className = prompt('Tên lớp học:');
+    if(className.length > 49) {
+        alert('Tên lớp học quá dài!')
+        return;
+    }
+    const formData = new FormData();
+    formData.append('class-name', className);
+
+    try {
+        const response = await fetch('/ajax/add-class', {
+            method: 'POST',
+            body: formData
+        });
+
+        if(response.ok) {
+            const { e, m, d } = await response.json();
+            const { navItem, gridItem } = d;
+            document.querySelector('.class-box').innerHTML += gridItem;
+            document.querySelector('.side-nav').innerHTML += navItem;
+            alert(m);
+        }
+
+    } catch (error) {
+        console.error(error.message);
+    }
+})
+
 const modal = document.querySelector('.modal-container');
 modal.addEventListener('click', event => {
     if(Array.from(event.target.classList).includes('modal-container')) {

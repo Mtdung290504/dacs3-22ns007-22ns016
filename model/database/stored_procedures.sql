@@ -146,6 +146,10 @@ create procedure create_class(
     in class_name nvarchar(50)
 ) begin
     INSERT INTO classes(name, lecturer_id) VALUES (class_name, lecturer_id);
+    
+    SELECT id, name
+    FROM classes
+    WHERE id = LAST_INSERT_ID();
 end $
 
 -- delete_class *nợ, dữ liệu liên quan quá nhiều, xử lý sau.

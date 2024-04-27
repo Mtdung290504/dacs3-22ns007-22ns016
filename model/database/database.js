@@ -1,4 +1,4 @@
-const { Account, Student, Lecturer } = require('../classes/classes');
+const { Account, Student, Lecturer, Class } = require('../classes/classes');
 const mysql = require('mysql2/promise');
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -60,10 +60,12 @@ class Database {
     // ****Trước khi gọi phải check role
     async createClass(lecturerId, className) {
         try {
-            const [resultSetHeader] = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
+            const queryResult = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
             console.log('lecturerCreateClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            const { id, name } = queryResult[0][0][0];
 
-            return resultSetHeader.affectedRows == 1 ? true : false;
+            return new Class(id, name);
         } catch (error) {
             throw error;
         }

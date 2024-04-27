@@ -194,6 +194,7 @@ body {
     max-height: none;
     overflow-y: auto;
     padding-bottom: 60px;
+    min-height: 70vh;
 }
 
 .body .main .ctn .title {
@@ -420,9 +421,12 @@ body {
     .body .main {
         padding: 5px;
         grid-template-columns: 1fr;
+        height: fit-content;
     }
 
     .body .main .ctn {
+        min-height: 0;
+        height: fit-content;
         padding: 5px 10px;
         padding-bottom: 20px;
     }

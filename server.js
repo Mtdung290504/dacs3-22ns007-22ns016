@@ -3,12 +3,12 @@ const session = require("express-session");
 const fs = require('fs');
 const path = require("path");
 const app = express();
-const port = 3000;
 const multer = require("multer");
 const bodyParser = require("body-parser");
 const middleWares = require("./middle-wares");
 const Database = require("./model/database/database");
 const { Lecturer } = require("./model/classes/classes");
+const Utils = require('./utils');
 const formUpload = multer();
 const db = new Database();
 
@@ -23,6 +23,11 @@ app.use(
     })
 );
 app.set("view engine", "ejs");
+
+app.get('/t' , (req , res)=>{
+    const data = { userName: 'alo', phoneNumber: '0123456789', class: 10 };
+    res.render('tests/testdata', data)
+});
 
 app.get("/login", (req, res) => {
     if (req.session.user) {
@@ -52,7 +57,7 @@ app.post("/signup", formUpload.none(), async (req, res) => {
             });
 
             req.session.user = user;
-            req.session.role = user instanceof Lecturer ? 1 : 0;
+            req.session.role = Number(user instanceof Lecturer);
             console.log("User logged in:", user);
 
             m = "ok";
@@ -81,7 +86,7 @@ app.post("/login", formUpload.none(), async (req, res) => {
         const user = await db.loginUser(submittedData);
 
         req.session.user = user;
-        req.session.role = user instanceof Lecturer ? 1 : 0;
+        req.session.role = Number(user instanceof Lecturer);
         console.log("User logged in:", user);
 
         m = "ok";
@@ -111,7 +116,7 @@ const userStorage = multer.diskStorage({
     },
 });
 
-const userUpload = multer({ storage: userStorage });
+const userUploadStorage = multer({ storage: userStorage });
 
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
@@ -121,10 +126,26 @@ app.get("/logout", (req, res) => {
     });
 });
 
-app.get("/", (req, res) => {
-    res.send("hello");
+app.get("/", async (req, res) => {
+    const user = req.session.user;
+    const role = req.session.role;
+    const roles = ['SV', 'GV'];
+    const rootUrl = Utils.getRootUrl(req);
+
+    try {
+        const listOfClasses = await db.getAllClass(user.id, role);
+        if(role == 1) {
+            res.render('home-views/lecturer', { rootUrl, user, listOfClasses, role: roles[role] });
+            return;
+        }
+        res.render('home-views/student', { rootUrl, user, listOfClasses, role: roles[role] })
+    } catch (error) {
+        console.error(error);
+        res.send('Internal server error');
+    }
 });
 
+const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
     console.log(`Server is listening at http://localhost:${port}`);
 });

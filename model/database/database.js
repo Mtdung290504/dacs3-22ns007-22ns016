@@ -1,4 +1,4 @@
-const { Account, User, Student, Lecturer } = require('../classes/classes');
+const { Account, Student, Lecturer } = require('../classes/classes');
 const mysql = require('mysql2/promise');
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -57,7 +57,7 @@ class Database {
         }
     }
 
-    // Trước khi gọi phải check role
+    // ****Trước khi gọi phải check role
     async createClass(lecturerId, className) {
         try {
             const [resultSetHeader] = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
@@ -69,9 +69,10 @@ class Database {
         }
     }
 
-    async getAllClass(userId, role = 1) {
+    async getAllClass(userId, role) {
         try {
-            const procedureCall = `CALL ${role == 1 ? 'get_all_lecturer_classes' : 'get_all_student_classes'} (?)`;
+            console.log(role);
+            const procedureCall = `CALL ${(role == 1) ? 'get_all_lecturer_classes' : 'get_all_student_classes'} (?)`;
             const queryResult = await this.pool.query(procedureCall, [userId]);
 
             console.log('getAllClass - QueryResult:', queryResult, '-----------------------------\n');
@@ -91,9 +92,9 @@ class Database {
     }
 }
 
-(async(testing = false)=>{
-    if(!testing)
-        return;
+(async (testing = false) => {
+    if(!testing) return;
+    
     const database = new Database();
 
     const listOfClasses = await database.getAllClass('1', 1);
@@ -107,6 +108,8 @@ class Database {
 
     const classList = await database.getAllClass(1);
     console.log(classList);
+
+    database.close();
 })()
 
 module.exports = Database

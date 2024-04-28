@@ -107,6 +107,17 @@ class Database {
         }
     }
 
+    async getAllDocByCategory(categoryId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_all_doc_by_doc_category_id(?)', [categoryId]);
+            console.log('getAllDocByCategory - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async close() {
         try {
             await this.pool.end();

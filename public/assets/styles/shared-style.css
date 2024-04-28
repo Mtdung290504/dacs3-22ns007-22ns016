@@ -40,3 +40,7 @@ a.btn:hover {
     background-color: rgb(231, 231, 231);
     box-shadow: 1px 0px 8px gray;
 }
+
+.red {
+    color: rgb(255, 60, 60);;
+}

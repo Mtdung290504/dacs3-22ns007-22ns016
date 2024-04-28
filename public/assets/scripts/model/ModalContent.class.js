@@ -1,5 +1,5 @@
 class EditDocumentContent {
-    constructor({categoryId, categoryName, docList}) {
+    constructor({ categoryId, categoryName, docList }) {
         this.title = `Chỉnh sửa danh mục tài liệu: ${categoryName}`;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
@@ -11,7 +11,7 @@ class EditDocumentContent {
         const docList = document.createElement('div');
         const searchBox = document.createElement('input');
         const inputs = document.createElement('div');
-        const [inputBox1, inputBox2] = [document.createElement('div'), document.createElement('div')].map(ib => {
+        const [inputBox1, inputBox2, inputBox3] = [document.createElement('div'), document.createElement('div'), document.createElement('div')].map(ib => {
             ib.classList.add('input-box'); 
             return ib;
         });
@@ -34,15 +34,21 @@ class EditDocumentContent {
 
         docList.appendChild(searchBox);
 
-        this.docList.forEach(doc => {//<i class="fa fa-trash" aria-hidden="true"></i>
+        this.docList.forEach(({ id, path }) => {//<i class="fa fa-trash" aria-hidden="true"></i>
+            createDocItemAndAddToList(id, path);
+        });
+
+        function createDocItemAndAddToList(id, path) {
             const a = document.createElement('a');
             const icon = document.createElement('i');
+            const [name, authorId] = path.split('/');
 
-            a.innerHTML = `<span>${doc.name}</span>`;
+            a.href = `uploads/${authorId}/${name}`;
+            a.innerHTML = `<span>${name}</span>`;
             icon.classList.add('fa', 'fa-trash');
             icon.setAttribute('aria-hidden', 'true');
-            icon.addEventListener('click', ()=>{
-                if(confirm(`Xác nhận xóa tài liệu: ${doc.id}: ${doc.name}`)) {
+            icon.addEventListener('click', () => {
+                if(confirm(`Xác nhận xóa tài liệu: ${id}: ${name}`)) {
                     //Send delete request to server
                     //Ex: deleteDoc(doc.id)
                 }
@@ -50,7 +56,7 @@ class EditDocumentContent {
 
             a.appendChild(icon);
             docList.appendChild(a);
-        });
+        }
 
         inputBox1.innerHTML = `
         <label for="category-name">ĐỔI TÊN DANH MỤC</label>            
@@ -62,30 +68,53 @@ class EditDocumentContent {
             //Send request change name
             const newName = inputBox1.querySelector('input[type="text"]').value;
             if(!newName) {
-                alert('Invalid');
+                alert('Tên không phù hợp');
                 return;
             }
-            alert(`Change name of id:${this.categoryId} to ${newName}`);
+            // alert(`Change name of id:${this.categoryId} to ${newName}`);
         });
         
         inputBox2.innerHTML = `
         <label for="category-name">TẢI THÊM TÀI LIỆU</label>
             <div style="display: flex; align-items: center;">
-            <input type="file" name="upload-file" id="upload-file" placeholder="Tải lên...">
+            <input type="file" name="upload-file" id="upload-file" placeholder="Tải lên..." multiple>
             <div class="btn">Thêm</div>
         </div>`;
         inputBox2.querySelector('.btn').addEventListener('click', ()=>{
             //Send request upload file
-            const newName = inputBox2.querySelector('input[type="file"]').value;
-            if(!newName) {
-                alert('Invalid');
+            const inputFile = inputBox2.querySelector('input[type="file"]');
+            const files = inputFile.files;
+
+            if(files.length === 0) {
+                alert('Vui lòng tải lên tệp!');
                 return;
             }
-            alert(`Upload: ${newName} to category:${this.categoryName}`);
+
+            RequestHandler.sendRequest('ajax/add-docs-to-doc-category', {
+                'doc-category-id': this.categoryId,
+                'files': Array.from(files)
+            }).then(({ e, m ,d }) => {
+                if(e) alert(e);
+                const { id, name } = d;
+                createDocItemAndAddToList(id, name);
+            })
+            .catch(error => console.error(error));
+
+            // alert(`Upload: ${newName} to category:${this.categoryName}`);
         });
+
+        const deleteBtn = document.createElement('div');
+        deleteBtn.textContent = 'Xóa danh mục';
+        deleteBtn.classList.add('btn', 'red');
+        deleteBtn.addEventListener('click', () => {
+            //Send request to delete category
+            
+        });
+        inputBox3.appendChild(deleteBtn);
 
         inputs.appendChild(inputBox1);
         inputs.appendChild(inputBox2);
+        inputs.appendChild(inputBox3);
 
         container.appendChild(docList);
         container.appendChild(inputs);

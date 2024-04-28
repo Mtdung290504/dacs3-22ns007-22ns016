@@ -24,6 +24,7 @@
                     <a id="create-class" href="javascript:void(0)">+ Tạo lớp học mới</a>
                 </div>
 
+                <!-- LIST OF CLASSES HERE -->
                 <div class="class-box">
                     <% listOfClasses.forEach(cls => { %>
                         <%- include('../common/class_grid_item', { rootUrl, cls, user, role }) %>
@@ -41,9 +42,8 @@
                     </div>
 
                     <!-- DOC CATEGORY ITEMS HERE -->
-                    <% for (const categoryId in listOfDocCategoryAndDoc) { 
-                        const { categoryName, listOfDocument } = listOfDocCategoryAndDoc[categoryId];
-                    %>
+                    <% for (const categoryId in listOfDocCategoryAndDoc) { %>
+                        <% const { categoryName, listOfDocument } = listOfDocCategoryAndDoc[categoryId]; %>
                         <%- include('./items/doc_category.ejs', { categoryId, categoryName, listOfDocument }); %>
                     <% } %>
 
@@ -88,13 +88,7 @@
     </div>
     
     <%- include('../common/footer') %>
-
-    <div class="modal-container">
-        <div class="modal">
-            <div class="modal-header"></div>
-            <div class="modal-body"></div>
-        </div>
-    </div>
+    <%- include('../common/modal.ejs') %>
 
     <script src="assets/scripts/model/RequestHandler.class.js"></script>
     <script src="assets/scripts/model/ModalContent.class.js"></script>

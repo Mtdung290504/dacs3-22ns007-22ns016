@@ -3,7 +3,15 @@ class RequestHandler {
         const formData = new FormData();
         for (const key in data) {
             if (Object.hasOwnProperty.call(data, key)) {
-                formData.append(`${key}`, data[key]);
+                console.log(key, data[key])
+                if (Array.isArray(data[key])) {
+                    data[key].forEach(file => {
+                        console.log(file)
+                        formData.append(`${key}`, file);
+                    });
+                } else {
+                    formData.append(`${key}`, data[key]);
+                }
             }
         }
 

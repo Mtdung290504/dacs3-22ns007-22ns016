@@ -100,24 +100,6 @@ app.post("/login", formUpload.none(), async (req, res) => {
 
 app.use(middleWares.requireLogin);
 
-const userStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const userId = req.session.user.id;
-        const userUploadsDir = path.join(__dirname, `public`, 'uploads', userId);
-
-        if (!fs.existsSync(userUploadsDir)) {
-            fs.mkdirSync(userUploadsDir, { recursive: true });
-        }
-
-        cb(null, userUploadsDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
-    },
-});
-
-const userUploadStorage = multer({ storage: userStorage });
-
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) console.error("Error destroying session:", err);
@@ -135,7 +117,7 @@ app.get("/", async (req, res) => {
     try {
         const listOfClasses = await db.getAllClass(user.id, role);
         if(role == 1) {
-            const queryResult = (await db.getAllDocCategoryAndDoc(user.id));
+            const queryResult = await db.getAllDocCategoryAndDoc(user.id);
             const listOfDocCategoryAndDoc = Document.buildDocLib(queryResult.map(item => new Document(item)));
             res.render('home-views/lecturer', { rootUrl, user, listOfClasses, role: roles[role], listOfDocCategoryAndDoc });
             return;

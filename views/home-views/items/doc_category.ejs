@@ -10,7 +10,7 @@
         <input type="text" placeholder="Tìm tài liệu...">
 
         <% listOfDocument.forEach(({ id, fileName }) => { if(id == null) return;%>
-            <a data-doc-id="doc000-1" href="">Chuong_1.pptx</a>
+            <a data-doc-id="doc000-1" href="uploads/<%= fileName %>"><%= fileName.split('/')[1] %></a>
         <% }); %>
 
     </div>

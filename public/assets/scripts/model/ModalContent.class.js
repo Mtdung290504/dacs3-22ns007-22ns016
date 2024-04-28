@@ -34,21 +34,24 @@ class EditDocumentContent {
 
         docList.appendChild(searchBox);
 
-        this.docList.forEach(({ id, path }) => {//<i class="fa fa-trash" aria-hidden="true"></i>
-            createDocItemAndAddToList(id, path);
+        this.docList.forEach(({ doc_id, file_name }) => {//<i class="fa fa-trash" aria-hidden="true"></i>
+            createDocItemAndAddToList(doc_id, file_name);
         });
 
         function createDocItemAndAddToList(id, path) {
             const a = document.createElement('a');
             const icon = document.createElement('i');
-            const [name, authorId] = path.split('/');
+            const [authorId, name] = path.split('/');
+            const orName = name.split('-')[1];
 
             a.href = `uploads/${authorId}/${name}`;
-            a.innerHTML = `<span>${name}</span>`;
+            a.target = 'blank';
+            a.innerHTML = `<span>${orName}</span>`;
             icon.classList.add('fa', 'fa-trash');
             icon.setAttribute('aria-hidden', 'true');
-            icon.addEventListener('click', () => {
-                if(confirm(`Xác nhận xóa tài liệu: ${id}: ${name}`)) {
+            icon.addEventListener('click', event => {
+                event.preventDefault();
+                if(confirm(`Xác nhận xóa tài liệu: ${id}: ${orName}`)) {
                     //Send delete request to server
                     //Ex: deleteDoc(doc.id)
                 }
@@ -90,17 +93,16 @@ class EditDocumentContent {
                 return;
             }
 
+            inputFile.value = '';
             RequestHandler.sendRequest('ajax/add-docs-to-doc-category', {
                 'doc-category-id': this.categoryId,
                 'files': Array.from(files)
             }).then(({ e, m ,d }) => {
                 if(e) alert(e);
-                const { id, name } = d;
-                createDocItemAndAddToList(id, name);
-            })
-            .catch(error => console.error(error));
-
-            // alert(`Upload: ${newName} to category:${this.categoryName}`);
+                d.forEach(({ doc_id, file_name }) => {
+                    createDocItemAndAddToList(doc_id, file_name);
+                });
+            }).catch(error => console.error(error));
         });
 
         const deleteBtn = document.createElement('div');

@@ -133,10 +133,20 @@ router.post("/add-docs-to-doc-category", userUploadStorage.array('files'), async
         return;
     }
 
-    req['files'].forEach(file => {
-        console.log('File received:', file.filename);
-        // Xử lý file ở đây, ví dụ: lưu vào thư mục, xử lý dữ liệu, ...
-    });
+    try {
+        d ??= [];
+
+        for (const file of req['files']) {
+            console.log(file);
+            const { id, file_name } = await db.createDocAndAddToDocCategory(`${user.id}/${file.filename}`, docCategoryId);
+            d.push({ id, file_name });
+        }
+        
+        m = 'Thêm thành công';
+    } catch (error) {
+        e = "Internal server error";
+        console.error(error);
+    }
 
     res.json({ e, m, d });
 });

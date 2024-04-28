@@ -211,6 +211,7 @@ create procedure create_doc_n_add_to_doc_category(
     in doc_category_id int
 ) begin
     INSERT INTO docs (file_name, doc_category_id) VALUES(file_name, doc_category_id);
+    SELECT id, file_name FROM docs WHERE id = last_insert_id();
 end $
 
 -- get_all_doc_category_n_doc (lecturer_id)

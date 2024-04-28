@@ -57,7 +57,6 @@ class Database {
         }
     }
 
-    // ****Trước khi gọi phải check role
     async createClass(lecturerId, className) {
         try {
             const queryResult = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
@@ -116,6 +115,19 @@ class Database {
         } catch (error) {
             throw error;
         }
+    }
+
+    async createDocAndAddToDocCategory(fileName, docCategoryId) {
+        try {
+            const queryResult = await this.pool.execute('CALL create_doc_n_add_to_doc_category(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            const { id, file_name } = queryResult[0][0][0];
+
+            return { id, file_name };
+        } catch (error) {
+            throw error;
+        }        
     }
 
     async close() {

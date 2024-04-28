@@ -66,35 +66,19 @@ signUpForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    const formData = new FormData();
-    const data = {
+    RequestHandler.sendRequest("signup", {
         "signup-name": signUpName.value,
         "signup-id": signUpId.value,
         "signup-pw": signUpPassword.value,
-    };
-    for (const key in data) {
-        if (Object.hasOwnProperty.call(data, key)) {
-            formData.append(`${key}`, data[key]);
+    }).then(({ e, m }) => {
+        if(m === 'ok') window.location.href = "/";
+        if(e) {
+            signUpIdStatusLabel.textContent = e;
+            signUpId.value = "";
         }
-    }
-
-    try {
-        const response = await fetch("/signup", {
-            method: "POST",
-            body: formData,
-        });
-
-        if (response.ok) {
-            const { e, m } = await response.json();
-            if (m === "ok") window.location.href = "/";
-            if (e) {
-                signUpIdStatusLabel.textContent = e;
-                signUpId.value = "";
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
+    }).catch(error => {
+        console.log(error);
+    });
 });
 
 loginForm.addEventListener("submit", async (event) => {
@@ -108,27 +92,18 @@ loginForm.addEventListener("submit", async (event) => {
         loginStatusLabel.classList.add("error");
         return;
     }
-
-    const formData = new FormData();
-    formData.append("login-id", loginId.value);
-    formData.append("login-password", loginPassword.value);
-
-    try {
-        const response = await fetch("/login", {
-            method: "POST",
-            body: formData,
-        });
-
-        if (response.ok) {
-            const { e, m } = await response.json();
-            if (m === "ok") window.location.href = "/";
-            if (e) {
-                loginStatusLabel.classList.add("error");
-            }
+    
+    RequestHandler.sendRequest("login", {
+        "login-id": loginId.value,
+        "login-password": loginPassword.value
+    }).then(({ e, m }) => {
+        if (m === "ok") window.location.href = "/";
+        if (e) {
+            loginStatusLabel.classList.add("error");
         }
-    } catch (error) {
-        console.error(error);
-    }
+    }).catch(error => {
+        console.log(error);
+    });
 });
 
 function checkUsername(username) {

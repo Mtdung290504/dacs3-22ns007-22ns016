@@ -7,7 +7,7 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const middleWares = require("./middle-wares");
 const Database = require("./model/database/database");
-const { Lecturer } = require("./model/classes/classes");
+const { Lecturer, Document } = require("./model/classes/classes");
 const Utils = require('./utils');
 const formUpload = multer();
 const db = new Database();
@@ -135,7 +135,9 @@ app.get("/", async (req, res) => {
     try {
         const listOfClasses = await db.getAllClass(user.id, role);
         if(role == 1) {
-            res.render('home-views/lecturer', { rootUrl, user, listOfClasses, role: roles[role] });
+            const queryResult = (await db.getAllDocCategoryAndDoc(user.id));
+            const listOfDocCategoryAndDoc = Document.buildDocLib(queryResult.map(item => new Document(item)));
+            res.render('home-views/lecturer', { rootUrl, user, listOfClasses, role: roles[role], listOfDocCategoryAndDoc });
             return;
         }
         res.render('home-views/student', { rootUrl, user, listOfClasses, role: roles[role] })

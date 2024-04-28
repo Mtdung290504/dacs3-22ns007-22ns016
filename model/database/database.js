@@ -65,7 +65,7 @@ class Database {
             console.log('lecturerCreateClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             const { id, name } = queryResult[0][0][0];
 
-            return new Class(id, name);
+            return { id, name };
         } catch (error) {
             throw error;
         }
@@ -73,11 +73,34 @@ class Database {
 
     async getAllClass(userId, role) {
         try {
-            console.log(role);
             const procedureCall = `CALL ${(role == 1) ? 'get_all_lecturer_classes' : 'get_all_student_classes'} (?)`;
             const queryResult = await this.pool.query(procedureCall, [userId]);
 
             console.log('getAllClass - QueryResult:', queryResult, '-----------------------------\n');
+            return queryResult[0][0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async createDocCategory(lecturerId, docCategoryName) {
+        try {
+            const queryResult = await this.pool.execute('CALL create_doc_category(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerCreateDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            const { id, name } = queryResult[0][0][0];
+
+            return { id, name };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getAllDocCategoryAndDoc(lecturerId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_all_doc_category_n_doc(?)', [lecturerId]);
+            console.log('getAllDocCategoryAndDoc - QueryResult:', queryResult, '-----------------------------\n');
+
             return queryResult[0][0];
         } catch (error) {
             throw error;

@@ -36,27 +36,36 @@ class User {
 class Lecturer extends User {
     constructor(id, name, phoneNumber, email) {
         super(...arguments);
-        this.documentLib = {};
+    }
+}
+
+class Document {
+    constructor({ doc_id, file_name, doc_category_id, category_name }) {
+        Object.assign(this, { 
+            id: doc_id,
+            fileName: file_name, 
+            categoryId: doc_category_id, 
+            categoryName: category_name
+        });
     }
 
-    addDocumentToDocumentLib(listOfDocument) {
-        listOfDocument.forEach(({ categoryId, categoryName, id, fileName }) => {
-            const categoryInLib = this.documentLib[categoryId];
+    static buildDocLib(listOfDocument) {
+        const documentLib = [];
+
+        listOfDocument.forEach(({ id, fileName, categoryId, categoryName }) => {
+            const categoryInLib = documentLib[categoryId];
+
             if (categoryInLib) {
                 categoryInLib.listOfDocument.push({ id, fileName });
             } else {
-                this.documentLib[categoryId] = {
+                documentLib[categoryId] = {
                     categoryName,
                     listOfDocument: [{ id, fileName }],
                 };
             }
         });
-    }
-}
 
-class Document {
-    constructor(categoryId, categoryName, id, fileName) {
-        Object.assign(this, { categoryId, categoryName, id, fileName });
+        return documentLib;
     }
 }
 

@@ -1,0 +1,17 @@
+<details>
+    <summary class="document-category" data-doc-category-id="<%= categoryId %>">
+        <h4><%= categoryName %></h4>
+        <div class="icon-box">
+            <div class="icon edit-icon edit-doc-icon" title="Xem và sửa"><i class="fas fa-edit"></i></div>
+            <div class="icon download-icon" title="download zip"><i class="fa fa-download" aria-hidden="true"></i></div>
+        </div>
+    </summary>
+    <div class="detail">
+        <input type="text" placeholder="Tìm tài liệu...">
+
+        <% listOfDocument.forEach(({ id, fileName }) => { if(id == null) return;%>
+            <a data-doc-id="doc000-1" href="">Chuong_1.pptx</a>
+        <% }); %>
+
+    </div>
+</details>

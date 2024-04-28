@@ -199,6 +199,10 @@ create procedure create_doc_category(
     in category_name nvarchar(50)
 ) begin
     INSERT INTO doc_categories(name, lecturer_id) VALUES(category_name, lecturer_id);
+
+    SELECT id, name
+    FROM doc_categories
+    WHERE id = LAST_INSERT_ID();
 end $
 
 -- create_doc_n_add_to_doc_category (file_name, doc_category_id)

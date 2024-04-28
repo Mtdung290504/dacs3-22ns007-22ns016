@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="../assets/styles/shared-style.css">
-    <link rel="stylesheet" href="../assets/styles/home-style.css">
-    <link rel="stylesheet" href="../assets/styles/modal-style.css">
+    <link rel="stylesheet" href="assets/styles/shared-style.css">
+    <link rel="stylesheet" href="assets/styles/home-style.css">
+    <link rel="stylesheet" href="assets/styles/modal-style.css">
 </head>
 <body class="">
     <%- include('../common/header', { user, role }) %>
@@ -33,51 +33,19 @@
             </div>
 
             <div class="ctn">
-                <details class="big-ctn">
+                <details class="big-ctn" id="document-category-container">
                     <summary class="document-category big-category title">KHO TÀI LIỆU</summary>
                     <div class="class-manage-box">
                         <input type="text" name="find-document" id="find-document" placeholder="Tìm danh mục...">
                         <a id="new-doc-category" href="javascript:void(0)">+ Danh mục mới</a>
                     </div>
 
-                    <details>
-                        <summary class="document-category" data-doc-id="doc000">
-                            <h4>Bộ slide Toán Rời Rạc</h4>
-                            <div class="icon-box">
-                                <div class="icon edit-icon edit-doc-icon" title="Xem và sửa"><i class="fas fa-edit"></i></div>
-                                <div class="icon download-icon" title="download zip"><i class="fa fa-download" aria-hidden="true"></i></div>
-                            </div>
-                        </summary>
-                        <div class="detail">
-                            <input type="text" placeholder="Tìm tài liệu...">
-                            <a data-doc-id="doc000-1" href="">Chuong_1.pptx</a>
-                            <a data-doc-id="doc000-2" href="">Chuong_2.pptx</a>
-                            <a data-doc-id="doc000-3" href="">Chuong_3.pptx</a>
-                            <a data-doc-id="doc000-4" href="">Chuong_4.pptx</a>
-                            <a data-doc-id="doc000-5" href="">Chuong_5.pptx</a>
-                        </div>
-                    </details>
-
-                    <details>
-                        <summary class="document-category" data-doc-id="doc001">
-                            <h4>Bộ slide Mạng MT</h4>
-                            <div class="icon-box">
-                                <div class="icon edit-icon edit-doc-icon" title="Xem và sửa"><i class="fas fa-edit"></i></div>
-                                <div class="icon download-icon" title="Tải toàn bộ (.zip)"><i class="fa fa-download" aria-hidden="true"></i></div>
-                            </div>
-                        </summary>
-                        <div class="detail">
-                            <input type="text" placeholder="Tìm tài liệu...">
-                            <a data-doc-id="doc001-1" href="">Chuong_1.pptx</a>
-                            <a data-doc-id="doc001-2" href="">Chuong_2.pptx</a>
-                            <a data-doc-id="doc001-3" href="">Chuong_3.pptx</a>
-                            <a data-doc-id="doc001-4" href="">Chuong_4.pptx</a>
-                            <a data-doc-id="doc001-5" href="">Chuong_5.pptx</a>
-                            <a data-doc-id="doc001-6" href="">Chuong_6.pptx</a>
-                            <a data-doc-id="doc001-7" href="">Chuong_7.pptx</a>
-                            <a data-doc-id="doc001-8" href="">Chuong_8.pptx</a>
-                        </div>
-                    </details>
+                    <!-- DOC CATEGORY ITEMS HERE -->
+                    <% for (const categoryId in listOfDocCategoryAndDoc) { 
+                        const { categoryName, listOfDocument } = listOfDocCategoryAndDoc[categoryId];
+                    %>
+                        <%- include('./items/doc_category.ejs', { categoryId, categoryName, listOfDocument }); %>
+                    <% } %>
 
                 </details>
 
@@ -128,8 +96,9 @@
         </div>
     </div>
 
-    <script src="../assets/scripts/Modal-content.class.js"></script>
-    <script src="../assets/scripts/shared-actions.js"></script>
-    <script src="../assets/scripts/teacher-homepage.js"></script>
+    <script src="assets/scripts/model/RequestHandler.class.js"></script>
+    <script src="assets/scripts/model/ModalContent.class.js"></script>
+    <script src="assets/scripts/shared-actions.js"></script>
+    <script src="assets/scripts/teacher-homepage.js"></script>
 </body>
 </html>

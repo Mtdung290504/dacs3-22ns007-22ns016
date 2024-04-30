@@ -19,6 +19,10 @@ body {
     --btn-color: #0f6cbf;
 }
 
+:is(textarea, input) {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
 :is(h1, h2, h3, h4, h5) {
     font-weight: 600;
 }

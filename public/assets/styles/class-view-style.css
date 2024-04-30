@@ -3,6 +3,7 @@
     margin-top: 10px;
     margin-bottom: 30px;
     text-transform: uppercase;
+    border-left: 10px solid var(--btn-color);
 }
 
 .class-name::after {
@@ -93,26 +94,12 @@ body .open-side-nav .chooses {
     padding: 10px
 }
 
-.documents a {
-    display: block;
-    text-decoration: none;
-    width: fit-content;
-    min-width: 100px;
-}
-
-.documents a::before {
-    content: "►  ";
-}
-
-.documents a:hover {
-    text-decoration: underline;
-}
-
-.exercise, .test {
+.exercise, .test, .documents {
     transition: .3s;
     box-shadow: 1px 1px 5px var(--btn-color);
     padding: 10px;
     margin-bottom: 20px;
+    border-left: 10px solid var(--btn-color);
 }
 
 /* :is(.exercise, .test):hover {
@@ -131,6 +118,8 @@ body .open-side-nav .chooses {
     align-items: center;
     justify-content: space-between;
     color: var(--btn-color);
+    border-left: 10px solid var(--btn-color);
+    padding-left: 10px;
 }
 
 :is(.exercise, .test) summary .icon {
@@ -159,53 +148,61 @@ body .open-side-nav .chooses {
 p:is(.desc, .attach, .limit, .status, .student-status){
     display: block;
     padding: 10px 20px;
+    padding-left: 30px;
     font-size: 1rem;
     background-color: #f4f4f4;
-    /* border: 1px solid black; */
+    /* border-left: 5px solid var(--btn-color); */
     margin-bottom: 5px;
+    margin-left: 10px;
 }
 
-p.attach a {
-    display: block;
+.documents a, p.attach a {
+    transition: .3s;
+    display: inline-block;
+    padding: 5px 10px;
+    color: #fff;
+    background-color: gray;
+    border-radius: 5px;
     text-decoration: none;
     width: fit-content;
+    margin-right: 10px;
+}
+.documents a {
+    display: block;
+    margin: 5px;
+}
+.documents a:hover, p.attach a:hover {
+    /* text-decoration: underline; */
+    background-color: var(--btn-color);
+    color: white;
 }
 
-p.attach a:hover {
-    text-decoration: underline;
-}
-
-p.attach a::before {
-    content: "► ";
+.documents a, p.attach a::before {
+    content: "►";
 }
 
 p.desc::before {
-    display: block;
     content: "Mô tả:";
-    font-weight: 600;
-    margin-bottom: 5px;
 }
 
 p.attach::before {
-    display: block;
     content: "File đính kèm:";
-    font-weight: 600;
-    margin-bottom: 5px;
 }
 
 p.limit::before {
-    display: block;
     content: "Thời hạn: " attr(time);
-    font-weight: 600;
-    margin-bottom: 5px;
 }
 
 p.status::before {
-    display: block;
     content: "Đã nộp: " attr(current) "/" attr(limit);
+    color: green;
+}
+
+p:is(.limit, .status, .attach, .desc)::before {
+    display: block;
     font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--btn-color);
+    margin-bottom: 10px;
+    margin-left: -15px;
 }
 
 h2.ttitle {

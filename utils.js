@@ -5,6 +5,39 @@ class Utils {
 
         return `${protocol}://${host}`;
     }
+
+    static generateRandomPassword(length = 6) {
+        const lowercaseCharset = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercaseCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numberCharset = '0123456789';
+        const specialCharset = '!@#$%^&';
+    
+        let password = '';
+    
+        // Chọn một ký tự từ mỗi charset
+        password += [lowercaseCharset, uppercaseCharset, numberCharset, specialCharset].reduce((s, charSet) => {
+            return s.concat(charSet[Math.floor(Math.random() * charSet.length)]);
+        }, '');
+    
+        // Tạo phần còn lại của mật khẩu
+        for (let i = 4; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * (lowercaseCharset.length + uppercaseCharset.length + numberCharset.length + specialCharset.length));
+            if (randomIndex < lowercaseCharset.length) {
+                password += lowercaseCharset[randomIndex];
+            } else if (randomIndex < lowercaseCharset.length + uppercaseCharset.length) {
+                password += uppercaseCharset[randomIndex - lowercaseCharset.length];
+            } else if (randomIndex < lowercaseCharset.length + uppercaseCharset.length + numberCharset.length) {
+                password += numberCharset[randomIndex - lowercaseCharset.length - uppercaseCharset.length];
+            } else {
+                password += specialCharset[randomIndex - lowercaseCharset.length - uppercaseCharset.length - numberCharset.length];
+            }
+        }
+    
+        // Trộn ngẫu nhiên các ký tự trong mật khẩu
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+    
+        return password;
+    }
 }
 
 module.exports = Utils;

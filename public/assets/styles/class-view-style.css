@@ -203,6 +203,7 @@ p:is(.limit, .status, .attach, .desc)::before {
     font-weight: 600;
     margin-bottom: 10px;
     margin-left: -15px;
+    color: var(--btn-color);
 }
 
 h2.ttitle {
@@ -210,23 +211,32 @@ h2.ttitle {
     background-color: white !important;
 }
 
+p.student-status.submitted {
+    background-color: rgba(0, 255, 0, .2);
+}
 p.student-status.submitted::before {
     content: "Trạng thái: Đã nộp bài";
     color: green;
 }
 
+p.student-status.submitted-late {
+    background-color: rgba(190, 130, 0, .2);
+}
 p.student-status.submitted-late::before {
     content: "Trạng thái: Nộp bài trễ";
     color: rgb(190, 130, 0);
 }
 
+p.student-status.unsubmitted {
+    background-color: rgb(180, 0, 0, .2);
+}
 p.student-status.unsubmitted::before {
     content: "Trạng thái: Chưa nộp bài";
     color: rgb(180, 0, 0);
 }
-
 p.student-status:is(.submitted, .submitted-late, .unsubmitted)::before {
-    font-weight: 600;
+    font-weight: 700;
+    margin-left: -15px;
 }
 
 .group-title.un-joined h3::after {

@@ -18,6 +18,10 @@ body.open-modal {
     overflow: hidden;
 }
 
+.btn.red {
+    color: red !important;
+}
+
 body.open-modal .modal-container {
     opacity: 1;
     pointer-events: all;
@@ -308,6 +312,10 @@ body .modal-container .modal .modal-body .wrapper:is(.student-manage)  .ctn:nth-
 
 .quest-answer.right {
     background-color: rgba(0, 255, 0, .3);
+}
+
+.quest-answer.right .right-icon {
+    display: none;
 }
 
 .doc-list {

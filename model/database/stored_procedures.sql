@@ -178,6 +178,10 @@ CREATE PROCEDURE remove_attach_file_from_class(
     in doc_id int
 )BEGIN
     DELETE FROM class_attach_files WHERE class_id = class_id AND doc_id = doc_id;
+
+    SELECT doc_id, file_name
+    FROM docs
+    WHERE id = doc_id;
 END$
 
 CREATE PROCEDURE check_class_existence(

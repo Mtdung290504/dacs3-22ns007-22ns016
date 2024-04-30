@@ -4,6 +4,11 @@ DROP PROCEDURE IF EXISTS signup;
 DROP PROCEDURE IF EXISTS signup_n_add_student_to_class;
 DROP PROCEDURE IF EXISTS login;
 DROP PROCEDURE IF EXISTS create_class;
+DROP PROCEDURE IF EXISTS attach_file_to_class;
+DROP PROCEDURE IF EXISTS remove_attach_file_from_class;
+DROP PROCEDURE IF EXISTS check_access_to_class;
+DROP PROCEDURE IF EXISTS get_class_members;
+DROP PROCEDURE IF EXISTS get_class_attach_files;
 DROP PROCEDURE IF EXISTS get_all_classes;
 DROP PROCEDURE IF EXISTS get_all_student_of_class;
 DROP PROCEDURE IF EXISTS create_doc_category;
@@ -31,6 +36,9 @@ DROP PROCEDURE IF EXISTS get_all_questions_in_test;
 DROP PROCEDURE IF EXISTS submit_test;
 DROP PROCEDURE IF EXISTS attach_quest_to_submit_test;
 DROP PROCEDURE IF EXISTS mark;
+DROP PROCEDURE IF EXISTS check_class_existence;
+DROP PROCEDURE IF EXISTS get_all_lecturer_classes;
+DROP PROCEDURE IF EXISTS get_all_student_classes;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password)
@@ -152,6 +160,87 @@ create procedure create_class(
     WHERE id = LAST_INSERT_ID();
 end $
 
+CREATE PROCEDURE attach_file_to_class(
+    IN class_id INT,
+    IN doc_id INT
+)
+BEGIN
+    INSERT INTO class_attach_files (class_id, doc_id)
+    VALUES (class_id, doc_id);
+
+    SELECT doc_id, file_name
+    FROM docs
+    WHERE id = doc_id;
+END$
+
+CREATE PROCEDURE remove_attach_file_from_class(
+    in class_id int,
+    in doc_id int
+)BEGIN
+    DELETE FROM class_attach_files WHERE class_id = class_id AND doc_id = doc_id;
+END$
+
+CREATE PROCEDURE check_class_existence(
+    IN class_id INT
+) BEGIN
+    -- Kiểm tra xem lớp có tồn tại không và nếu không tồn tại, ném ra lỗi
+    IF NOT EXISTS (SELECT 1 FROM classes WHERE id = class_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lớp không tồn tại.';
+    END IF;
+END $
+
+CREATE PROCEDURE check_access_to_class(
+    in user_id int,
+    in class_id int
+)BEGIN
+    DECLARE is_lecturer int;
+    DECLARE is_student int;
+
+    -- Kiểm tra xem user_id là giáo viên hay sinh viên
+    SELECT COUNT(*) INTO is_lecturer FROM lecturers WHERE id = user_id;
+    SELECT COUNT(*) INTO is_student FROM students WHERE id = user_id;
+
+    -- Kiểm tra xem user_id có phải là giảng viên của lớp không
+    IF is_lecturer > 0 THEN
+        IF NOT EXISTS (SELECT 1 FROM classes WHERE id = class_id AND lecturer_id = user_id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Không phải là giảng viên của lớp.';
+        END IF;
+    END IF;
+
+    -- Kiểm tra xem user_id có phải là sinh viên của lớp không
+    IF is_student > 0 THEN
+        IF NOT EXISTS (SELECT 1 FROM classes_n_students WHERE class_id = class_id AND student_id = user_id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Không phải là sinh viên của lớp.';
+        END IF;
+    END IF;
+END$
+
+CREATE PROCEDURE get_class_members(
+    IN class_id INT
+)BEGIN
+    SELECT c.name AS class_name, COUNT(cs.student_id) AS member_count
+    FROM classes c
+    LEFT JOIN classes_n_students cs ON c.id = cs.class_id
+    WHERE c.id = class_id
+    GROUP BY c.id;
+END $
+
+CREATE PROCEDURE get_class_attach_files(
+    IN class_id INT,
+    IN lecturer_id INT
+)BEGIN
+    SELECT caf.doc_id, d.file_name
+    FROM class_attach_files caf
+    INNER JOIN docs d ON caf.doc_id = d.id
+    WHERE caf.class_id = class_id
+    AND EXISTS (
+        SELECT 1
+        FROM classes c
+        WHERE c.id = caf.class_id
+        AND c.lecturer_id = lecturer_id
+    );
+END $
 -- delete_class *nợ, dữ liệu liên quan quá nhiều, xử lý sau.
 
 -- get_all_lecturer_classes (lecturer_id)

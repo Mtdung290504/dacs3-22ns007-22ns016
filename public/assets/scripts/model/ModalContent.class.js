@@ -93,7 +93,6 @@ class EditDocumentContent {
                 return;
             }
 
-            inputFile.value = '';
             RequestHandler.sendRequest('ajax/add-docs-to-doc-category', {
                 'doc-category-id': this.categoryId,
                 'files': Array.from(files)
@@ -102,6 +101,7 @@ class EditDocumentContent {
                 d.forEach(({ doc_id, file_name }) => {
                     createDocItemAndAddToList(doc_id, file_name);
                 });
+                inputFile.value = '';
             }).catch(error => console.error(error));
         });
 

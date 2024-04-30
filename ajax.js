@@ -137,7 +137,6 @@ router.post("/add-docs-to-doc-category", userUploadStorage.array('files'), async
         d ??= [];
 
         for (const file of req['files']) {
-            console.log(file);
             const { id, file_name } = await db.createDocAndAddToDocCategory(`${user.id}/${file.filename}`, docCategoryId);
             d.push({ id, file_name });
         }

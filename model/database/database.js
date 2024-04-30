@@ -130,6 +130,62 @@ class Database {
         }        
     }
 
+    async checkClassExistence(classId) {
+        try {
+            await this.pool.query('CALL check_class_existence(?)', [classId]);
+        } catch (error) {
+            if (error.code === 'ER_SIGNAL_EXCEPTION')
+                throw new Error(error.sqlMessage);
+            throw(error);
+        }
+    }
+
+    async checkAccessToClass(userId, classId) {
+        try {
+            await this.pool.query('CALL check_access_to_class(?, ?)', [...arguments]);
+        } catch (error) {
+            if (error.code === 'ER_SIGNAL_EXCEPTION')
+                throw new Error(error.sqlMessage);
+            throw(error);
+        }
+    }
+    
+    async getClassNameAndMember(classId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_class_members(?)', [classId]);
+            console.log('getClassNameAndMember - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0][0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getClassAttachFiles(classId, lecturerId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_class_attach_files(?, ?)', [...arguments]);
+            console.log('getClassAttachFiles - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    
+    async attachFileTOClass(classId, docId) {
+        try {
+            const queryResult = await this.pool.execute('CALL create_doc_n_add_to_doc_category(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            const { id, file_name } = queryResult[0][0][0];
+
+            return { id, file_name };
+        } catch (error) {
+            throw error;
+        }       
+    }
+
     async close() {
         try {
             await this.pool.end();

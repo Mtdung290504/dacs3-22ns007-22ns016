@@ -85,16 +85,6 @@ class Class {
         Object.assign(this, { id, name });
         this.listOfExercises = [];
     }
-
-    withListOfExercises(listOfExercises) {
-        const idMap = this.listOfExercises.map((exercise) => exercise.id);
-        this.listOfExercises.push(
-            ...listOfExercises.filter((exercise) => !idMap.includes(exercise.id))
-        );
-        return this;
-    }
-
-    withListOfAttachFiles(listOfAttachFiles) { }
 }
 
 class Exercise {

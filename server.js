@@ -129,6 +129,7 @@ app.get("/", async (req, res) => {
     }
 });
 
+app.use('/class', require('./class'));
 app.use('/ajax', require('./ajax'));
 
 const port = process.env.PORT || 3000;

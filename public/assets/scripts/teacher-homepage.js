@@ -142,6 +142,7 @@ function openModal(type, docCategoryId) {
             data = { 'doc-category-id': docCategoryId };
             callBack = ({ e, m, d }) => {
                 if(e) alert(e);
+                console.log(d);
                 new ModalContent(type, d).buildModalContent(modal);
                 document.body.classList.add('open-modal');
             };

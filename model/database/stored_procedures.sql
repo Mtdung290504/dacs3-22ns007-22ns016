@@ -338,20 +338,36 @@ END $
 -- delete_doc_category(doc_category_id)
 CREATE PROCEDURE delete_doc_category(
     IN doc_category_id INT
-)BEGIN
-    DELETE FROM docs
-    WHERE doc_category_id = doc_category_id;
+)
+BEGIN
+    -- Xóa tất cả các file đính kèm của danh mục tài liệu đó trong các lớp
+    DELETE caf FROM class_attach_files caf
+    INNER JOIN docs d ON caf.doc_id = d.id
+    WHERE d.doc_category_id = doc_category_id;
 
-    DELETE FROM doc_categories
-    WHERE id = doc_category_id;
+    -- Xóa tất cả các file đính kèm của danh mục tài liệu đó trong các bài tập
+    DELETE eaf FROM exercise_attach_files eaf
+    INNER JOIN docs d ON eaf.doc_id = d.id
+    WHERE d.doc_category_id = doc_category_id;
+
+    -- Xóa tất cả các tài liệu thuộc danh mục đó
+    DELETE FROM docs WHERE doc_category_id = doc_category_id;
+
+    -- Xóa danh mục tài liệu
+    DELETE FROM doc_categories WHERE id = doc_category_id;
 END $
 
 -- delete_doc(doc_id)
 CREATE PROCEDURE delete_doc(
     IN doc_id INT
-)BEGIN
-    DELETE FROM docs
-    WHERE id = doc_id;
+)
+BEGIN
+    -- Xóa file đính kèm trong các lớp
+    DELETE FROM class_attach_files WHERE doc_id = doc_id;
+    -- Xóa file đính kèm trong các bài tập
+    DELETE FROM exercise_attach_files WHERE doc_id = doc_id;
+    -- Xóa tài liệu
+    DELETE FROM docs WHERE id = doc_id;
 END $
 
 -- create_quest_category (lecturer_id, category_name)

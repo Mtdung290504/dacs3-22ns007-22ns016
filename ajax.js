@@ -178,6 +178,72 @@ const userUploadStorage = multer({ storage: userStorage });
 
         res.json({ e, m, d });
     });
+    router.delete('/doc-category', formUpload.none(), async (req, res) => {
+        let [e, m, d] = Array(3).fill(null);
+        const user = req.session.user;
+        const docCategoryId = req.body["docCategoryId"];
+    
+        try {
+            const listOfDocument = await db.getAllDocByCategory(docCategoryId);
+            for (const { file_name } of listOfDocument) {
+                const filePathWithSessionUid = `${user.id}/${file_name.substring(file_name.indexOf('/') + 1)}`;
+                const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                } else {
+                    throw new Error('Không tìm thấy file để xóa');
+                }
+            }
+            await db.deleteDocCategory(docCategoryId);
+    
+            m = "ok";
+        } catch (error) {
+            e = "Internal server error";
+            console.error(error);
+        }
+    
+        res.json({ e, m, d });
+    });
+    router.delete('/doc', formUpload.none(), async (req, res) => {
+        let [e, m, d] = Array(3).fill(null);
+        const user = req.session.user;
+        const docId = req.body["docId"];
+        const fileName = req.body["fileName"];
+    
+        try {
+            const filePathWithSessionUid = `${user.id}/${fileName}`;
+            const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
+            // console.log(filePath);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            } else {
+                throw new Error('Không tìm thấy file để xóa');
+            }
+            await db.deleteDoc(docId);
+    
+            m = "ok";
+        } catch (error) {
+            e = "Internal server error";
+            console.error(error);
+        }
+    
+        res.json({ e, m, d });
+    });
+    router.put('/doc-category-name', formUpload.none(), async (req, res) => {
+        let [e, m, d] = Array(3).fill(null);
+        const docCategoryId = req.body["docCategoryId"];
+        const newName = req.body["newName"];
+    
+        try {
+            await db.changeNameOfDocCategory(docCategoryId, newName);
+            m = "Đổi tên thành công";
+        } catch (error) {
+            e = "Internal server error";
+            console.error(error);
+        }
+    
+        res.json({ e, m, d });
+    });
     router.post('/add-quest-lib');
     router.post('/get-quests-by-quest-lib');
     router.post('/add-quests-to-quest-lib');

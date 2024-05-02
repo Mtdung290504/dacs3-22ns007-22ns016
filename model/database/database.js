@@ -130,6 +130,39 @@ class Database {
         }        
     }
 
+    async changeNameOfDocCategory(docCategoryId, newName) {
+        try {
+            const queryResult = await this.pool.execute('CALL update_doc_category_name(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerChangeNameOfDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }        
+    }
+
+    async deleteDocCategory(docCategoryId) {
+        try {
+            const queryResult = await this.pool.execute('CALL delete_doc_category(?)', [docCategoryId]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDeleteDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteDoc(docId) {
+        try {
+            const queryResult = await this.pool.execute('CALL delete_doc(?)', [docId]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDeleteDoc - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async checkClassExistence(classId) {
         try {
             await this.pool.query('CALL check_class_existence(?)', [classId]);
@@ -197,6 +230,8 @@ class Database {
             throw error;
         }       
     }
+
+
 
     async close() {
         try {

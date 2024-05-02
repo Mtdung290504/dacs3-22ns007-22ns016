@@ -42,7 +42,7 @@ class EditDocumentContent {
             const a = document.createElement('a');
             const icon = document.createElement('i');
             const [authorId, name] = path.split('/');
-            const orName = name.split('-')[1];
+            const orName = name.substring(name.indexOf('-') + 1);
 
             a.href = `uploads/${authorId}/${name}`;
             a.target = 'blank';
@@ -52,13 +52,26 @@ class EditDocumentContent {
             icon.addEventListener('click', event => {
                 event.preventDefault();
                 if(confirm(`Xác nhận xóa tài liệu: ${id}: ${orName}`)) {
-                    //Send delete request to server
-                    //Ex: deleteDoc(doc.id)
+                    RequestHandler.sendRequest('ajax/doc', {
+                        docId: id,
+                        fileName: name
+                    }, 'DELETE').then(({ e, m, d })=>{
+                        if(e) {
+                            alert(e);
+                            return;
+                        }
+                        if(m == 'ok') {
+                            docList.removeChild(a);
+                            const aInList = document.querySelector(`a[data-doc-id="${id}"].link-to-doc-in-list`);
+                            aInList.parentElement.removeChild(aInList);
+                        }
+                    }).catch(error => console.log(error));
                 }
             });
 
             a.appendChild(icon);
             docList.appendChild(a);
+            return a;
         }
 
         inputBox1.innerHTML = `
@@ -69,12 +82,26 @@ class EditDocumentContent {
         </div>`;
         inputBox1.querySelector('.btn').addEventListener('click', ()=>{
             //Send request change name
-            const newName = inputBox1.querySelector('input[type="text"]').value;
+            const input = inputBox1.querySelector('input[type="text"]');
+            const newName = input.value;
             if(!newName) {
                 alert('Tên không phù hợp');
                 return;
             }
-            // alert(`Change name of id:${this.categoryId} to ${newName}`);
+            RequestHandler.sendRequest('ajax/doc-category-name', { docCategoryId: this.categoryId, newName }, 'PUT')
+            .then(({ e, m, d }) => {
+                if(e) {
+                    alert(e);
+                    return;
+                }
+                if(m) {
+                    alert(m);
+                    document.querySelector('.modal-header').textContent = `Chỉnh sửa danh mục tài liệu: ${newName}`;
+                    document.querySelector(`.document-category[data-doc-category-id="${this.categoryId}"] h4`).textContent = newName;
+                    input.value = '';
+                }
+            })
+            .catch(error => console.log(error));
         });
         
         inputBox2.innerHTML = `
@@ -98,8 +125,16 @@ class EditDocumentContent {
                 'files': Array.from(files)
             }).then(({ e, m ,d }) => {
                 if(e) alert(e);
+                const containerOfDocCategory = document.querySelector(`details[data-conteiner-of-doc-category-id="${this.categoryId}"] .detail`);
                 d.forEach(({ doc_id, file_name }) => {
                     createDocItemAndAddToList(doc_id, file_name);
+                    const link = document.createElement('a');
+                    link.classList.add('link-to-doc-in-list');
+                    link.target = '_blank';
+                    link.setAttribute('data-doc-id', doc_id);
+                    link.href = `upload/${file_name}`;
+                    link.textContent = file_name.split('/')[1].substring(file_name.split('/')[1].indexOf('-') + 1);
+                    containerOfDocCategory.appendChild(link);
                 });
                 inputFile.value = '';
             }).catch(error => console.error(error));
@@ -110,7 +145,19 @@ class EditDocumentContent {
         deleteBtn.classList.add('btn', 'red');
         deleteBtn.addEventListener('click', () => {
             //Send request to delete category
-            
+            RequestHandler.sendRequest('ajax/doc-category', {
+                docCategoryId: this.categoryId
+            }, 'DELETE').then(({ e, m, d })=> {
+                if(e) {
+                    alert(e);
+                    return;
+                }
+                if(m == 'ok') {
+                    document.body.classList.remove('open-modal');
+                    const containerOfDocCategory = document.querySelector(`details[data-conteiner-of-doc-category-id="${this.categoryId}"]`);
+                    containerOfDocCategory.parentElement.removeChild(containerOfDocCategory);
+                }
+            }).catch(error => console.log(error));
         });
         inputBox3.appendChild(deleteBtn);
 

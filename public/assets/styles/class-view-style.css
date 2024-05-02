@@ -168,7 +168,7 @@ p:is(.desc, .attach, .limit, .status, .student-status){
     margin-right: 10px;
 }
 .documents a {
-    display: block;
+    display: inline-block;
     margin: 5px;
 }
 .documents a:hover, p.attach a:hover {

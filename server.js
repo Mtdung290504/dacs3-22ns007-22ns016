@@ -110,6 +110,7 @@ app.get("/logout", (req, res) => {
 
 app.get("/", async (req, res) => {
     const user = req.session.user;
+    user.accessingClass = null;
     const role = req.session.role;
     const roles = ['SV', 'GV'];
     const rootUrl = Utils.getRootUrl(req);

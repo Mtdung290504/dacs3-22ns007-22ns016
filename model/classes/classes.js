@@ -50,7 +50,7 @@ class Document {
     }
 
     static buildDocLib(listOfDocument) {
-        const documentLib = [];
+        const documentLib = {};
 
         listOfDocument.forEach(({ id, fileName, categoryId, categoryName }) => {
             const categoryInLib = documentLib[categoryId];

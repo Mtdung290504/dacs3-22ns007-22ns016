@@ -138,11 +138,119 @@ class EditQuestLibContent {
     }
 }
 
+class EditClassFileAttaches {
+    constructor({ listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl }) {
+        Object.assign(this, { listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl });
+        this.className = document.querySelector('h2.class-name').textContent;
+        this.title = `Quản lý tài liệu lớp ${this.className}`;
+        this.classId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+    }
+
+    getModalBodyContent() {
+        const wrapper = document.createElement('div');
+        const ctn1 = document.createElement('div');
+        const ctn2 = document.createElement('div');
+
+        wrapper.classList.add('wrapper', 'edit-doc');
+        [ctn1, ctn2].forEach(ctn => ctn.classList.add('ctn'));
+        ctn1.classList.add('doc-list');
+        ctn1.innerHTML = '<h3>DANH SÁCH TÀI LIỆU LỚP</h3>';
+
+        ctn2.innerHTML = '<div class="input-box"><label for="">ĐÍNH KÈM TỆP</label></div> <div class="documents"></div>';
+        const containerOfDocList2 = ctn2.querySelector('.documents');
+        //CTN2
+        for (const categoryId in this.listOfDocCategoryAndDoc) {
+            console.log(categoryId);
+            const { categoryName, listOfDocument } = this.listOfDocCategoryAndDoc[categoryId];
+            if(listOfDocument.length == 0) continue;
+            const docList = document.createElement('div');
+
+            docList.classList.add('doc-list');
+            docList.innerHTML = `<h3 class="doc-category-name">${categoryName}</h3><ul class="doc-ctn"></ul>`;
+            const docCtn = docList.querySelector('.doc-ctn');
+
+            listOfDocument.sort((a, b) => {
+                const fa = a.fileName.substring(a.fileName.indexOf('-') + 1);
+                const fb = b.fileName.substring(a.fileName.indexOf('-') + 1);
+                return fa.localeCompare(fb);
+            });
+            listOfDocument.forEach(({ id, fileName }) => {
+                // <li><input type="checkbox" name="1" id="1"><label for="1">Bài tập chương 1</label></li>
+                const fileNameToDisplay = fileName.substring(fileName.indexOf('-') + 1);
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="checkbox" id="edt-class-attach-file--file${id}"><label for="edt-class-attach-file--file${id}">${fileNameToDisplay}</label>`;
+                const checkBox = li.querySelector('input');
+                checkBox.addEventListener('input', event => {
+                    if(event.target.checked) {
+                        //Send request to server to attach this file to class.
+                        RequestHandler.sendRequest(`ajax/attach-file-to-class`, { classId: this.classId, fileId: id })
+                        .then(({ e, m, d}) => {
+                            if(e) {
+                                alert(e);
+                                return;
+                            }
+                            if(m == 'ok') {
+                                const documentsContainer = document.querySelector('.documents');
+                                const aToInner = `<a target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
+                                ctn1.innerHTML += aToInner;
+                                if(documentsContainer.querySelector('h3')) {
+                                    documentsContainer.innerHTML = '';
+                                }
+                                documentsContainer.innerHTML += aToInner;
+                            }
+                        }).catch(error => console.error(error));
+                        return;
+                    }
+
+                    //Send request to server to remove this file from class.
+                    RequestHandler.sendRequest(`ajax/attach-file-from-class`, { classId: this.classId, fileId: id }, 'DELETE')
+                    .then(({ e, m, d}) => {
+                        if(e) {
+                            alert(e);
+                            return;
+                        }
+                        if(m == 'ok') {
+                            const documentsContainer = document.querySelector('.documents');
+                            const aToRemove = documentsContainer.querySelectorAll(`a[data-file-id="${id}"]`);
+                            const aToRemoveFromModal = ctn1.querySelectorAll(`a[data-file-id="${id}"]`);
+                            aToRemove.forEach(a => {documentsContainer.removeChild(a)});
+                            aToRemoveFromModal.forEach(a => {ctn1.removeChild(a)});
+                        }
+                    }).catch(error => console.error(error));
+                });
+                if(this.listOfAttachedFileId.includes(id)) {
+                    checkBox.checked = true;
+                    const aToInner = `<a target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
+                    ctn1.innerHTML += aToInner;
+                }
+                    
+                docCtn.appendChild(li);
+            });
+
+            containerOfDocList2.appendChild(docList);
+        }
+
+        wrapper.appendChild(ctn1);
+        wrapper.appendChild(ctn2);
+        return wrapper;
+    }
+}
+
+class ManageStudent {
+    constructor({ listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl }) {
+        Object.assign(this, { listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl });
+        this.className = document.querySelector('h2.class-name').textContent;
+        this.title = `Quản lý tài liệu lớp ${this.className}`;
+        this.classId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+    }
+}
+
 class ModalContent {
     constructor(type, data) {
         this.typeList = {
             'editDocument': EditDocumentContent,
             'editQuestLib': EditQuestLibContent,
+            'editClassFileAttaches': EditClassFileAttaches,
         }
         this.content = new this.typeList[type](data);
         console.log(type, this.content);

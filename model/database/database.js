@@ -172,15 +172,27 @@ class Database {
         }
     }
 
-    
-    async attachFileTOClass(classId, docId) {
+    async attachFileToClass(classId, docId) {
         try {
-            const queryResult = await this.pool.execute('CALL create_doc_n_add_to_doc_category(?, ?)', [...arguments]);
+            const queryResult = await this.pool.execute('CALL attach_file_to_class(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
-            const { id, file_name } = queryResult[0][0][0];
+            console.log('lecturerAttachFileToClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            if(resultSetHeader.affectedRows == 1)
+                return true;
+            return false;
+        } catch (error) {
+            throw error;
+        }       
+    }
 
-            return { id, file_name };
+    async removeAttachFileFromClass(classId, docId) {
+        try {
+            const queryResult = await this.pool.execute('CALL remove_attach_file_from_class(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerRemoveAttachFileFromClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            if(resultSetHeader.affectedRows == 1)
+                return true;
+            return false;
         } catch (error) {
             throw error;
         }       

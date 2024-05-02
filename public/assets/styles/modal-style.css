@@ -335,7 +335,7 @@ body .modal-container .modal .modal-body .wrapper:is(.student-manage)  .ctn:nth-
 .doc-list ul.doc-ctn {
     display: block;
     padding: 1px 30px;
-    line-height: 1.5;
+    line-height: 2;
 }
 ul.doc-ctn li {
     padding-left: 5px;

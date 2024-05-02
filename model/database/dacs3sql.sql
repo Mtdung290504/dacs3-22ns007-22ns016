@@ -1,7 +1,7 @@
 create database if not exists dacs3v0 character set utf8 collate utf8_general_ci;
 use dacs3v0;
 -- drop database dacs3v0;
-
+-- select*from doc_categories;
 create table if not exists users (
 	id int primary key auto_increment,
     is_lecturer tinyint default null,

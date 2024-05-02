@@ -111,6 +111,7 @@ CREATE PROCEDURE signup_n_add_student_to_class(
     DECLARE student_id_out INT;
     DECLARE existing_student_id INT;
     DECLARE existing_student_in_class INT;
+    DECLARE is_account_exists BOOLEAN DEFAULT FALSE;
 
     -- Kiểm tra xem login_id đã tồn tại chưa
     SELECT user_id INTO existing_student_id FROM user_login_id 
@@ -127,14 +128,20 @@ CREATE PROCEDURE signup_n_add_student_to_class(
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Sinh viên đã có mặt trong lớp';
     ELSE
         -- Nếu sinh viên chưa có trong lớp, thêm vào lớp
+        -- Nếu chưa có tài khoản, tạo tài khoản | Nếu đã có tài khoản, đánh dấu
         IF existing_student_id IS NULL THEN
             CALL signup(0, user_name, user_login_name, user_password, student_id_out);
         ELSE
             SET student_id_out = existing_student_id;
+            SET is_account_exists = TRUE;
         END IF;
 
         -- Thêm sinh viên vào lớp
         INSERT INTO classes_n_students(student_id, class_id) VALUES (student_id_out, class_id);
+    END IF;
+
+    IF is_account_exists = TRUE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Sinh viên đã có tài khoản từ trước';
     END IF;
 END $
 
@@ -167,21 +174,13 @@ CREATE PROCEDURE attach_file_to_class(
 BEGIN
     INSERT INTO class_attach_files (class_id, doc_id)
     VALUES (class_id, doc_id);
-
-    SELECT doc_id, file_name
-    FROM docs
-    WHERE id = doc_id;
 END$
 
 CREATE PROCEDURE remove_attach_file_from_class(
     in class_id int,
     in doc_id int
 )BEGIN
-    DELETE FROM class_attach_files WHERE class_id = class_id AND doc_id = doc_id;
-
-    SELECT doc_id, file_name
-    FROM docs
-    WHERE id = doc_id;
+    DELETE FROM class_attach_files WHERE class_attach_files.class_id = class_id AND class_attach_files.doc_id = doc_id;
 END$
 
 CREATE PROCEDURE check_class_existence(

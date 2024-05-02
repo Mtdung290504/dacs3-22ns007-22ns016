@@ -1,12 +1,10 @@
 class RequestHandler {
-    static async sendRequest(endpoint, data) {
+    static async sendRequest(endpoint, data, method = 'POST') {
         const formData = new FormData();
         for (const key in data) {
             if (Object.hasOwnProperty.call(data, key)) {
-                console.log(key, data[key])
                 if (Array.isArray(data[key])) {
                     data[key].forEach(file => {
-                        console.log(file)
                         formData.append(`${key}`, file);
                     });
                 } else {
@@ -17,7 +15,7 @@ class RequestHandler {
 
         try {
             const response = await fetch('/' + endpoint, {
-                method: "POST",
+                method,
                 body: formData,
             });
     

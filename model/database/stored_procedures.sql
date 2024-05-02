@@ -260,10 +260,11 @@ end $
 CREATE PROCEDURE get_all_student_classes(
     in student_id int
 )BEGIN
-    SELECT classes.id, classes.name, lecturers.id AS lecturer_id, lecturers.name AS lecturer_name
+    SELECT classes.id, classes.name, lecturers.id AS lecturer_id, users.name AS lecturer_name
     FROM classes
     INNER JOIN classes_n_students ON classes.id = classes_n_students.class_id
     INNER JOIN lecturers ON classes.lecturer_id = lecturers.id
+    INNER JOIN users ON users.id = lecturers.id
     WHERE classes_n_students.student_id = student_id;
 END $
 
@@ -351,7 +352,7 @@ BEGIN
     WHERE d.doc_category_id = doc_category_id;
 
     -- Xóa tất cả các tài liệu thuộc danh mục đó
-    DELETE FROM docs WHERE doc_category_id = doc_category_id;
+    DELETE FROM docs WHERE docs.doc_category_id = doc_category_id;
 
     -- Xóa danh mục tài liệu
     DELETE FROM doc_categories WHERE id = doc_category_id;
@@ -360,12 +361,11 @@ END $
 -- delete_doc(doc_id)
 CREATE PROCEDURE delete_doc(
     IN doc_id INT
-)
-BEGIN
+)BEGIN
     -- Xóa file đính kèm trong các lớp
-    DELETE FROM class_attach_files WHERE doc_id = doc_id;
+    DELETE FROM class_attach_files WHERE class_attach_files.doc_id = doc_id;
     -- Xóa file đính kèm trong các bài tập
-    DELETE FROM exercise_attach_files WHERE doc_id = doc_id;
+    DELETE FROM exercise_attach_files WHERE exercise_attach_files.doc_id = doc_id;
     -- Xóa tài liệu
     DELETE FROM docs WHERE id = doc_id;
 END $

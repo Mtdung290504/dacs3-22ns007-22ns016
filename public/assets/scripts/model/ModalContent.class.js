@@ -126,12 +126,13 @@ class EditDocumentContent {
             }).then(({ e, m ,d }) => {
                 if(e) alert(e);
                 const containerOfDocCategory = document.querySelector(`details[data-conteiner-of-doc-category-id="${this.categoryId}"] .detail`);
-                d.forEach(({ doc_id, file_name }) => {
-                    createDocItemAndAddToList(doc_id, file_name);
+                console.log(d);
+                d.forEach(({ id, file_name }) => {
+                    createDocItemAndAddToList(id, file_name);
                     const link = document.createElement('a');
                     link.classList.add('link-to-doc-in-list');
                     link.target = '_blank';
-                    link.setAttribute('data-doc-id', doc_id);
+                    link.setAttribute('data-doc-id', id);
                     link.href = `upload/${file_name}`;
                     link.textContent = file_name.split('/')[1].substring(file_name.split('/')[1].indexOf('-') + 1);
                     containerOfDocCategory.appendChild(link);
@@ -144,6 +145,9 @@ class EditDocumentContent {
         deleteBtn.textContent = 'Xóa danh mục';
         deleteBtn.classList.add('btn', 'red');
         deleteBtn.addEventListener('click', () => {
+            if(!confirm(`Xác nhận xóa danh mục ${this.categoryName}?`))
+                return;
+
             //Send request to delete category
             RequestHandler.sendRequest('ajax/doc-category', {
                 docCategoryId: this.categoryId
@@ -284,11 +288,104 @@ class EditClassFileAttaches {
 }
 
 class ManageStudent {
-    constructor({ listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl }) {
-        Object.assign(this, { listOfDocCategoryAndDoc, listOfAttachedFileId, rootUrl });
+    constructor(listOfStudent) {
+        this.listOfStudent = listOfStudent;
         this.className = document.querySelector('h2.class-name').textContent;
-        this.title = `Quản lý tài liệu lớp ${this.className}`;
-        this.classId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+        this.title = `Quản lý sinh viên lớp ${this.className}`;
+    }
+
+    getModalBodyContent() {
+        const wrapper = document.createElement('div');
+        const [ctn1, ctn2] = Array(2).fill(null).map(item => document.createElement('div'));
+        wrapper.classList.add('wrapper', 'student-manage');
+        ctn1.classList.add('ctn');
+        ctn2.classList.add('ctn');
+
+        console.log(this.listOfStudent);
+        ctn1.innerHTML = `<div class="ctn">
+            <h3>DANH SÁCH LỚP ${this.className}</h3><br>
+            <table>
+                <tr>
+                    <th>Định danh</th>
+                    <th>Họ và tên</th>
+                    <th>&ensp;</th>
+                </tr>
+            </table>
+        </div>`;
+        const table = ctn1.querySelector('table');
+        this.listOfStudent.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="std-id">${student.login_id}</td><td class="std-name">${student.name}</td>`;
+            const deleteBtn = document.createElement('td');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.addEventListener('click', () => {
+                //Send request to delete this student
+                alert(student.id);
+                //Then, remove view
+                table.removeChild(tr);
+            });
+            tr.appendChild(deleteBtn);
+            table.appendChild(tr);
+        });
+
+        ctn2.innerHTML = `<div class="input-box">
+            <label for="upload-file">THÊM SINH VIÊN</label>
+            <div style="display: flex; align-items: center;">
+                <input required type="file" name="upload-file" id="upload-file" accept=".xlsx">
+                <div class="btn">Thêm</div>
+            </div>
+            <p class="note">
+                <strong>LƯU Ý</strong>: TẢI LÊN FILE EXCEL (.xlsx) CHỨA DANH SÁCH SINH VIÊN, HỆ THỐNG SẼ LẤY CỘT ĐẦU TIÊN LÀM ĐỊNH DANH, CỘT THỨ 2 LÀ HỌ TÊN SINH VIÊN.<br><br>LƯU Ý, ĐỊNH DANH KHÔNG ĐƯỢC TRÙNG, NẾU TRÙNG SẼ BỊ LỌC
+            </p>
+        </div>`;
+        const inputFile = ctn2.querySelector('input');
+        const submitBtn = ctn2.querySelector('.btn');
+        submitBtn.addEventListener('click', () => {
+            const file = inputFile.files[0];
+            if(!file) {
+                alert('Vui lòng tải tệp lên');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            fetch('/ajax/student-to-class', { method: 'POST', body: formData })
+            .then(async (response) => {
+                console.log(response);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                document.body.classList.remove('open-modal');
+                alert('Thêm thành công!');
+                // Lấy tên tệp từ phản hồi
+                const contentDisposition = response.headers.get('Content-Disposition');
+                console.log('contentDisposition: ', contentDisposition);
+                const match = contentDisposition.match(/filename="(.+)"/);
+                let fileName = 'Danh sách sinh viên.xlsx'; // Tên mặc định nếu không tìm thấy
+                if (match && match[1]) {
+                    fileName = decodeURIComponent(match[1]); // Giải mã tên tệp
+                }
+                // Tạo Blob từ phản hồi
+                return response.blob().then(blob => ({ blob, fileName }));
+            })
+            .then(({ blob, fileName }) => {
+                // Tạo URL từ Blob để tạo liên kết tải xuống
+                var url = URL.createObjectURL(blob);
+                // Tạo một thẻ a để tải xuống tệp
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = fileName; // Sử dụng tên tệp từ phản hồi
+                document.body.appendChild(a);
+                a.click(); // Kích hoạt sự kiện click để bắt đầu tải xuống
+                window.URL.revokeObjectURL(url); // Giải phóng URL khi không cần thiết nữa
+            })
+            .catch(error => console.error(error));
+        });
+
+        wrapper.appendChild(ctn1);
+        wrapper.appendChild(ctn2);
+
+        return wrapper;
     }
 }
 
@@ -298,6 +395,7 @@ class ModalContent {
             'editDocument': EditDocumentContent,
             'editQuestLib': EditQuestLibContent,
             'editClassFileAttaches': EditClassFileAttaches,
+            'manageStudent': ManageStudent,
         }
         this.content = new this.typeList[type](data);
         console.log(type, this.content);

@@ -123,7 +123,9 @@ app.get("/", async (req, res) => {
             res.render('home-views/lecturer', { rootUrl, user, listOfClasses, role: roles[role], listOfDocCategoryAndDoc });
             return;
         }
-        res.render('home-views/student', { rootUrl, user, listOfClasses, role: roles[role] })
+        
+        res.render('home-views/student', { rootUrl, user, listOfClasses, role: roles[role] });
+        console.log(listOfClasses);
     } catch (error) {
         console.error(error);
         res.send('Internal server error');

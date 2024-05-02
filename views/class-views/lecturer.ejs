@@ -14,7 +14,7 @@
 
     <%- include('../common/header', { user, role }) %>
 
-    <div class="body">
+    <div class="body open-side-nav">
         <%- include('../common/nav', { rootUrl, listOfClasses }) %>
 
         <div class="main">
@@ -25,7 +25,7 @@
                 <details class="big-ctn class-view-detail" open>
                     <summary><h3 class="title">TÙY CHỌN</h3></summary>
                     <div class="chooses">
-                        <a href="javascript:void(0)" class="btn">quản lý sinh viên</a>
+                        <a id="manage-student" href="javascript:void(0)" class="btn">quản lý sinh viên</a>
                         <a id="manage-class-documents" href="javascript:void(0)" class="btn">quản lý tài liệu lớp</a>
                         <a href="javascript:void(0)" class="btn">giao bài tập</a>
                         <a href="javascript:void(0)" class="btn">giao bài kiểm tra</a>

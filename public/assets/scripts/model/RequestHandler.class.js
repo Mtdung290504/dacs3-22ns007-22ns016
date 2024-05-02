@@ -14,10 +14,15 @@ class RequestHandler {
         }
 
         try {
-            const response = await fetch('/' + endpoint, {
-                method,
-                body: formData,
-            });
+            let response;
+            if(method != 'GET') {
+                response = await fetch('/' + endpoint, {
+                    method,
+                    body: formData,
+                }); 
+            } else {
+                response = await fetch('/' + endpoint); 
+            }
     
             if (response.ok) {
                 const { e, m, d = null } = await response.json();

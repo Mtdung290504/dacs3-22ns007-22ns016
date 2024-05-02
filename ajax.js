@@ -8,6 +8,7 @@ const Database = require("./model/database/database");
 const { Document } = require("./model/classes/classes");
 const formUpload = multer();
 const db = new Database();
+const xlsx = require('node-xlsx');
 
 const userStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -128,12 +129,6 @@ const userUploadStorage = multer({ storage: userStorage });
         const queryResult = await db.getAllDocCategoryAndDoc(user.id);
         const ownCategory = queryResult.map((doc) => doc.doc_category_id);
         const docCategoryId = req.body["doc-category-id"];
-        
-        if (!ownCategory.includes(Number(docCategoryId))) {
-            e = "Bạn không có quyền!";
-            res.json({ e, m, d });
-            return;
-        }
 
         const docCategoryName = queryResult[queryResult.findIndex(rs => rs.doc_category_id == docCategoryId)].category_name;
 
@@ -213,7 +208,7 @@ const userUploadStorage = multer({ storage: userStorage });
         try {
             const filePathWithSessionUid = `${user.id}/${fileName}`;
             const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
-            // console.log(filePath);
+            console.log(filePath);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             } else {
@@ -250,8 +245,106 @@ const userUploadStorage = multer({ storage: userStorage });
 
 //Lecturer classpage requests
     //Executes
-        router.post('/student-to-class');
-        router.delete('/student-from-class');
+        router.get('/student-from-class', async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+            const user = req.session.user;
+            const classId = user.accessingClass;
+
+            try {
+                d = await db.getAllClassMember(classId);
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+            
+            res.json({ e, m, d });
+        });
+        router.post('/student-to-class', userUploadStorage.single('file'), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+        
+            if (!req.file) {
+                e = 'Vui lòng tải lên file';
+                res.json({ e, m, d });
+                return;
+            }
+
+            const file = req.file;
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const workSheetsFromFile = xlsx.parse(file.path);
+            const sheet = workSheetsFromFile[0].data;
+            const studentIdCaches = [];
+            const studentsWithPasswords = [];
+
+            try {
+                // Bỏ qua hàng đầu tiên (tiêu đề cột)
+                for (const row of sheet.slice(1)) {
+                    if(studentIdCaches.includes(row[0]))
+                        continue;
+                    studentIdCaches.push(row[0]);
+                    const student = {
+                        id: row[0],
+                        name: row[1].toUpperCase(),
+                        password: Utils.generateRandomPassword(),
+                        note: ''
+                    };
+                    try {
+                        await db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId);
+                    } catch (error) {
+                        const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
+                        const errorCode = errorMessages.indexOf(error.message);
+                        if(errorCode == 0) {
+                            student.password = '';
+                            student.note = errorMessages[errorCode];
+                            console.log(student.note)
+                        } else if(errorCode == 1) {
+                            student.password = '';
+                            student.note = errorMessages[errorCode];
+                            console.log(student.note)
+                        } else {
+                            throw error;
+                        }
+                    }
+
+                    studentsWithPasswords.push(student);
+                }
+
+                // Tạo file Excel mới
+                const newFilePath = __dirname + `/public/uploads/${user.id}/${Date.now()} - students_with_passwords.xlsx`;
+                const buffer = xlsx.build([{name: "Sinh viên", data: [["Mã sinh viên", "Tên sinh viên", "Mật khẩu", "Ghi chú"]].concat(studentsWithPasswords.map(student => Object.values(student)))}]);
+                
+                // Ghi dữ liệu vào file Excel mới
+                fs.writeFileSync(newFilePath, buffer);
+
+                // Trả về file Excel mới cho người dùng
+                const { class_name } = await db.getClassNameAndMember(classId);
+                res.download(newFilePath, encodeURI(`Danh sách tài khoản đăng nhập lớp ${class_name}.xlsx`), (err) => {
+                    if (err) {
+                        console.log("Error while downloading file:", err);
+                    }
+                    // Xóa file tạm thời sau khi đã trả về cho người dùng
+                    fs.unlinkSync(newFilePath);
+                    fs.unlinkSync(file.path);
+                });
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+                res.json({ e, m, d });
+            }
+        });
+        router.delete('/student-from-class', formUpload.none(), async (req, res) => {
+            // let [e, m, d] = Array(3).fill(null);
+            // const studentId = req.body[""]
+        
+            // try {
+            //     m = "Đổi tên thành công";
+            // } catch (error) {
+            //     e = "Internal server error";
+            //     console.error(error);
+            // }
+        
+            // res.json({ e, m, d });
+        });
         router.post('/exercise'); //Add
         router.put('/exercise'); //Update
         router.delete('/exercise'); //Delete
@@ -286,7 +379,6 @@ const userUploadStorage = multer({ storage: userStorage });
             res.json({ e, m, d });
         });
     //Queries
-        router.get('/files-attached-to-class');
         router.get('/exercise-info');
         router.get('/list-of-students');
 //Student classpage requests

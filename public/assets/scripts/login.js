@@ -85,10 +85,7 @@ loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     loginStatusLabel.classList.remove("error");
-    if (
-        !checkUsername(loginId.value) ||
-        checkPassword(loginPassword.value) == "not-satisfy"
-    ) {
+    if (checkPassword(loginPassword.value) == "not-satisfy") {
         loginStatusLabel.classList.add("error");
         return;
     }

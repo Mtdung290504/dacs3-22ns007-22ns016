@@ -135,6 +135,7 @@ body {
     padding: 10px 15px;
     border: .5px solid lightgray;
     margin-bottom: 10px;
+    text-transform: capitalize;
 }
 
 .body .side-nav a:not(.link-title) {
@@ -296,10 +297,12 @@ body {
     -webkit-box-orient: vertical;
     text-overflow: ellipse;
     overflow: hidden;
+    text-transform: capitalize;
 }
 
 .body .main div.ctn .class-box a.class-link .class-name::after {
     content: " - " attr(author-name);
+    text-transform: uppercase;
 }
 
 .footer {

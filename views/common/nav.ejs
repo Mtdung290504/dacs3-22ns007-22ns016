@@ -6,7 +6,7 @@
         <% if (role === 'GV') { %>
             <a href="<%= rootUrl %>/class/<%= cls.id %>"><%= cls.name %></a>
         <% } else {%> 
-            <a href="<%= rootUrl %>/class/<%= cls.id %>"><%= cls.name %> - <%= cls.lecturerName %></a>
+            <a href="<%= rootUrl %>/class/<%= cls.id %>"><%= cls.name %> - <%= cls.lecturer_name %></a>
         <% } %>
     <% }) %>
 </div>

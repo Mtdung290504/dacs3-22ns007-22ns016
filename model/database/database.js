@@ -231,7 +231,28 @@ class Database {
         }       
     }
 
+    async getAllClassMember(classId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_all_student_of_class(?)', [classId]);
+            console.log('getAllClassMember - QueryResult:', queryResult, '-----------------------------\n');
 
+            return queryResult[0][0]; //id, login_id, name
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async signUpAndAddStudentToClass(userName, userLoginId, userPassword, classId) {
+        try {
+            userPassword = await bcrypt.hash(userPassword, saltRounds);
+            await this.pool.execute('CALL signup_n_add_student_to_class(?, ?, ?, ?)', [userName, userLoginId, userPassword, classId]);
+        } catch (error) {
+            if (error.code === 'ER_SIGNAL_EXCEPTION') {
+                throw new Error(error.sqlMessage);
+            }
+            throw error;
+        }
+    }
 
     async close() {
         try {

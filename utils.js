@@ -1,3 +1,6 @@
+const moment = require('moment');
+
+
 class Utils {
     static getRootUrl(req) {
         const protocol = req.protocol; 
@@ -37,6 +40,14 @@ class Utils {
         password = password.split('').sort(() => Math.random() - 0.5).join('');
     
         return password;
+    }
+
+    static formatToSqlDatetime(value) {
+        return moment(value, 'YYYY-MM-DDTHH:mm').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    static formatToInputDatetime(value) {
+        return moment(value).format('YYYY-MM-DDTHH:mm')
     }
 }
 

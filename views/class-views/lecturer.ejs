@@ -26,15 +26,12 @@
                     <summary><h3 class="title">TÙY CHỌN</h3></summary>
                     <div class="chooses">
                         <a id="manage-student" href="javascript:void(0)" class="btn">quản lý sinh viên</a>
-                        <a id="manage-class-documents" href="javascript:void(0)" class="btn">quản lý tài liệu lớp</a>
-                        <a href="javascript:void(0)" class="btn">giao bài tập</a>
-                        <a href="javascript:void(0)" class="btn">giao bài kiểm tra</a>
                         <a href="javascript:void(0)" class="btn red">giải tán lớp</a>                        
                     </div>
                 </details>
                 
                 <details class="big-ctn class-view-detail" open>
-                    <summary><h3 class="title">TÀI LIỆU LỚP</h3></summary>
+                    <summary><h3 class="title class-view-title">TÀI LIỆU LỚP <a id="manage-class-documents" href="javascript:void(0)" class="btn">Quản lý</a></h3></summary>
                     <div class="documents">
                         <% if (listOfAttachFile.length == 0) { %>
                             <h3 style="margin: 10px">CHƯA CÓ TÀI LIỆU NÀO</h3>
@@ -47,7 +44,7 @@
                 </details>
 
                 <details class="big-ctn class-view-detail" open>
-                    <summary><h3 class="title">BÀI TẬP LỚP</h3></summary>
+                    <summary><h3 class="title class-view-title">BÀI TẬP LỚP <a href="javascript:void(0)" class="btn">giao bài tập</a></h3></summary>
                     <div class="exercises">
 
                         <details class="exercise">
@@ -94,7 +91,7 @@
                 </details>
 
                 <details class="big-ctn class-view-detail" open>
-                    <summary><h3 class="title">KIỂM TRA TRẮC NGHIỆM</h3></summary>
+                    <summary><h3 class="title class-view-title">KIỂM TRA TRẮC NGHIỆM <a href="javascript:void(0)" class="btn">giao bài kiểm tra</a></h3></summary>
                     <div class="tests">
                         <details class="test">
                             <summary>

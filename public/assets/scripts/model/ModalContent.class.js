@@ -133,7 +133,7 @@ class EditDocumentContent {
                     link.classList.add('link-to-doc-in-list');
                     link.target = '_blank';
                     link.setAttribute('data-doc-id', id);
-                    link.href = `upload/${file_name}`;
+                    link.href = `uploads/${file_name}`;
                     link.textContent = file_name.split('/')[1].substring(file_name.split('/')[1].indexOf('-') + 1);
                     containerOfDocCategory.appendChild(link);
                 });

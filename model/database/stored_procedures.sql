@@ -283,7 +283,8 @@ CREATE PROCEDURE get_all_student_of_class(
         GROUP BY user_id
     ) AS sub_ul ON u.id = sub_ul.user_id
     JOIN user_login_id ul1 ON sub_ul.user_id = ul1.user_id AND sub_ul.min_id = ul1.id
-    WHERE c.id = class_id;
+    WHERE c.id = class_id
+    ORDER BY ul1.login_id ASC;
 END $
 
 -- create_doc_category (lecturer_id, category_name)

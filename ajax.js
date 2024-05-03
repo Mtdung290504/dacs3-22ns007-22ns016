@@ -275,39 +275,71 @@ const userUploadStorage = multer({ storage: userStorage });
             const sheet = workSheetsFromFile[0].data;
             const studentIdCaches = [];
             const studentsWithPasswords = [];
+            const promises = [];
 
-            try {
-                // Bỏ qua hàng đầu tiên (tiêu đề cột)
-                for (const row of sheet.slice(1)) {
-                    if(studentIdCaches.includes(row[0]))
-                        continue;
-                    studentIdCaches.push(row[0]);
-                    const student = {
-                        id: row[0],
-                        name: row[1].toUpperCase(),
-                        password: Utils.generateRandomPassword(),
-                        note: ''
-                    };
-                    try {
-                        await db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId);
-                    } catch (error) {
+            //Code insert song song (mới)
+            for (const row of sheet.slice(1)) {
+                if (studentIdCaches.includes(row[0]))
+                    continue;
+                studentIdCaches.push(row[0]);
+                const student = {
+                    id: row[0],
+                    name: row[1].toUpperCase(),
+                    password: Utils.generateRandomPassword(),
+                    note: ''
+                };
+                const promise = db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId)
+                    .catch(error => {
                         const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
                         const errorCode = errorMessages.indexOf(error.message);
-                        if(errorCode == 0) {
+                        if (errorCode === 0 || errorCode === 1) {
                             student.password = '';
                             student.note = errorMessages[errorCode];
-                            console.log(student.note)
-                        } else if(errorCode == 1) {
-                            student.password = '';
-                            student.note = errorMessages[errorCode];
-                            console.log(student.note)
+                            console.log(student.note);
                         } else {
                             throw error;
                         }
-                    }
+                    });
+            
+                promises.push(promise);
+                studentsWithPasswords.push(student);
+            }
 
-                    studentsWithPasswords.push(student);
-                }
+            try {
+                // Bỏ qua hàng đầu tiên (tiêu đề cột)
+                //Code insert tuần tự
+                // for (const row of sheet.slice(1)) {
+                //     if(studentIdCaches.includes(row[0]))
+                //         continue;
+                //     studentIdCaches.push(row[0]);
+                //     const student = {
+                //         id: row[0],
+                //         name: row[1].toUpperCase(),
+                //         password: Utils.generateRandomPassword(),
+                //         note: ''
+                //     };
+                //     try {
+                //         await db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId);
+                //     } catch (error) {
+                //         const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
+                //         const errorCode = errorMessages.indexOf(error.message);
+                //         if(errorCode == 0) {
+                //             student.password = '';
+                //             student.note = errorMessages[errorCode];
+                //             console.log(student.note)
+                //         } else if(errorCode == 1) {
+                //             student.password = '';
+                //             student.note = errorMessages[errorCode];
+                //             console.log(student.note)
+                //         } else {
+                //             throw error;
+                //         }
+                //     }
+
+                //     studentsWithPasswords.push(student);
+                // }
+
+                await Promise.all(promises);
 
                 // Tạo file Excel mới
                 const newFilePath = __dirname + `/public/uploads/${user.id}/${Date.now()} - students_with_passwords.xlsx`;

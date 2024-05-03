@@ -248,6 +248,18 @@ p.student-status:is(.submitted, .submitted-late, .unsubmitted)::before {
     content: "  *Thuộc nhóm " attr(subgroup);
     color: green;
 }
+h3.title.class-view-title{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+h3.title.class-view-title a.btn {
+    padding: 5px 10px;
+    text-align: center;
+    font-size: 1rem;
+    text-transform: capitalize;
+}
 
 @media screen and (max-width: 730px) {
     .exercises, .test, .documents {

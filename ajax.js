@@ -9,6 +9,7 @@ const { Document } = require("./model/classes/classes");
 const formUpload = multer();
 const db = new Database();
 const xlsx = require('node-xlsx');
+const middleWares = require('./middle-wares');
 
 const userStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -29,6 +30,7 @@ const userStorage = multer.diskStorage({
 
 const userUploadStorage = multer({ storage: userStorage });
 
+// router.use(middleWares.requireAccessToClass);
 //Lecturer hompage requests
     router.post("/add-class", formUpload.none(), async (req, res) => {
         let e = null,
@@ -109,7 +111,7 @@ const userUploadStorage = multer({ storage: userStorage });
         try {
             const queryResult = await db.getAllDocCategoryAndDoc(user.id);
             let listOfDocCategoryAndDoc = Document.buildDocLib(queryResult.map(item => {return new Document(item)}));
-            console.log('listOfDocCategoryAndDoc: ', listOfDocCategoryAndDoc);
+            // console.log('listOfDocCategoryAndDoc: ', listOfDocCategoryAndDoc);
             
             let listOfAttachedFileId = await db.getClassAttachFiles(classId, user.id);
             listOfAttachedFileId = listOfAttachedFileId.map(({ doc_id }) => doc_id);
@@ -421,8 +423,90 @@ const userUploadStorage = multer({ storage: userStorage });
         
             res.json({ e, m, d });
         }); //Add
-        router.put('/exercise'); //Update
-        router.delete('/exercise'); //Delete
+        router.put('/exercise', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const exerciseId = req.body['exerciseId'],
+                    exName = req.body['exName'], 
+                    exDes = req.body['exDes'],
+                    exStart = Utils.formatToSqlDatetime(req.body['exStart']), 
+                    exEnd = Utils.formatToSqlDatetime(req.body['exEnd']), 
+                    attachFileIds = JSON.parse(req.body['attachFileIds']);
+            const rootUrl = Utils.getRootUrl(req);
+            
+            // console.log(exName, exDes, exStart, exEnd, attachFileIds);
+            try {
+                const { member_count } = await db.getClassNameAndMember(classId);
+                await db.updateExercise(exerciseId, exStart, exEnd, exName, exDes);
+                await db.resetExerciseAttachFile(exerciseId);
+                for (const docId of attachFileIds) {
+                    await db.attachFileToExercise(exerciseId, docId);
+                }
+                m = "Sửa thành công";
+                
+                const exercise = await db.getExerciseInfoForLecturer(exerciseId);
+                const attachFiles = await db.getAttachFileOfExercise(exerciseId);
+                exercise.attachFiles = attachFiles;
+                exercise.start_time = Utils.formatToDisplayDatetime(exercise.start_time);
+                exercise.end_time = Utils.formatToDisplayDatetime(exercise.end_time);
+                d = await ejs.renderFile(
+                    path.join(__dirname, "views", "class-views", "items", "exercise-lecturer-view.ejs"),
+                    { rootUrl, members: member_count, exercise }
+                );
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        }); //Update
+        router.delete('/exercise', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const exerciseId = req.body['exerciseId'];
+
+            try {
+                const submittedExerciseFiles = await db.getAllSubmittedExerciseFiles(exerciseId);
+                const deletePromises = submittedExerciseFiles.map(({ file_name }) => {
+                    const filePath = path.join(__dirname, 'public', 'uploads', file_name);
+        
+                    // Trả về một promise để xóa file
+                    return new Promise((resolve, reject) => {
+                        fs.unlink(filePath, err => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                });
+
+                await Promise.all(deletePromises);
+                await db.deleteExercise(exerciseId);
+                m = "Xóa thành công";
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        }); //Delete
         router.post('/attach-file-to-class', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const classId = req.body["classId"];
@@ -454,6 +538,35 @@ const userUploadStorage = multer({ storage: userStorage });
             res.json({ e, m, d });
         });
     //Queries
+        router.get('/exercise/:id', async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const exerciseId = req.params.id;
+            const rootUrl = Utils.getRootUrl(req);
+
+            try {
+                const exercise = await db.getExerciseInfoForLecturer(exerciseId);
+                let listOfAttachedFileId = await db.getAttachFileOfExercise(exerciseId);
+                listOfAttachedFileId = listOfAttachedFileId.map(({ doc_id }) => doc_id);
+                let listOfDocCategoryAndDoc = await db.getAllDocCategoryAndDoc(user.id);
+                listOfDocCategoryAndDoc = Document.buildDocLib(listOfDocCategoryAndDoc.map(item => {return new Document(item)}));
+                exercise.start_time = Utils.formatToInputDatetime(exercise.start_time);
+                exercise.end_time = Utils.formatToInputDatetime(exercise.end_time);
+                d = { exerciseId, oldData: exercise, listOfAttachedFileId, listOfDocCategoryAndDoc, rootUrl };
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        });
         router.get('/exercise-info');
         router.get('/list-of-students');
 //Student classpage requests

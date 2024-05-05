@@ -167,6 +167,9 @@ p:is(.desc, .attach, .limit, .status, .student-status){
     width: fit-content;
     margin-right: 10px;
 }
+p.attach a {
+    margin: 5px 2px;
+}
 .documents a {
     display: inline-block;
     margin: 5px;
@@ -178,7 +181,7 @@ p:is(.desc, .attach, .limit, .status, .student-status){
 }
 
 .documents a, p.attach a::before {
-    content: "►";
+    content: "";
 }
 
 p.desc::before {

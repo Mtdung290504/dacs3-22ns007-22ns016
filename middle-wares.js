@@ -26,7 +26,8 @@ module.exports = {
             return next();
         } catch (error) {
             // res.send(`<h3 style="color: red">${error.message}</h3>`);
-            res.redirect('/');
+            // res.redirect('/');
+            res.json({ e: 'Bạn không có quyền truy cập!', m: null, d: null });
         }
     }
 }

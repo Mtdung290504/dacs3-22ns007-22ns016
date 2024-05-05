@@ -126,7 +126,7 @@ class EditDocumentContent {
             }).then(({ e, m ,d }) => {
                 if(e) alert(e);
                 const containerOfDocCategory = document.querySelector(`details[data-conteiner-of-doc-category-id="${this.categoryId}"] .detail`);
-                console.log(d);
+                // console.log(d);
                 d.forEach(({ id, file_name }) => {
                     createDocItemAndAddToList(id, file_name);
                     const link = document.createElement('a');
@@ -266,6 +266,8 @@ class EditClassFileAttaches {
                             const aToRemoveFromModal = ctn1.querySelectorAll(`a[data-file-id="${id}"]`);
                             aToRemove.forEach(a => {documentsContainer.removeChild(a)});
                             aToRemoveFromModal.forEach(a => {ctn1.removeChild(a)});
+                            if(documentsContainer.childElementCount == 0)
+                                documentsContainer.innerHTML = '<h3 style="margin: 10px">CHƯA CÓ BÀI TẬP NÀO</h3>';
                         }
                     }).catch(error => console.error(error));
                 });
@@ -449,7 +451,10 @@ class AddExercise {
                 }
                 alert(m);
                 document.body.classList.remove('open-modal');
-                document.querySelector('.exercises').innerHTML += d;
+                const exerciseContainer = document.querySelector('.exercises');
+                if(exerciseContainer.querySelector('h3'))
+                    exerciseContainer.innerHTML = '';
+                exerciseContainer.innerHTML += d;
             }).catch(error => console.log(error));
         });
         ctn1.querySelector('a#add-exercise-submit-btn').addEventListener('click', () => {
@@ -493,6 +498,123 @@ class AddExercise {
     }
 }
 
+class EditExercise {
+    constructor({ exerciseId, oldData, listOfAttachedFileId, listOfDocCategoryAndDoc, rootUrl }) {
+        Object.assign(this, { exerciseId, oldData, listOfAttachedFileId, listOfDocCategoryAndDoc, rootUrl });
+        this.className = document.querySelector('h2.class-name').textContent;
+        this.exerciseName = document.querySelector(`#exercise-${exerciseId}`).querySelector('summary').textContent;
+        this.title = `Sửa bài tập: "${this.exerciseName.trim()}"`;
+    }
+
+    getModalBodyContent() {
+        const wrapper = document.createElement('div');
+        const ctn1 = document.createElement('div');
+        const ctn2 = document.createElement('div');
+
+        wrapper.classList.add('wrapper', 'assign-homework');
+        [ctn1, ctn2].forEach(ctn => ctn.classList.add('ctn'));
+
+        ctn1.innerHTML = `<h3>THÔNG TIN BÀI TẬP</h3>
+        <div class="form-box">
+            <div class="input-box">
+                <form id="update-exercise-form">
+                    <div class="form-row">
+                        <label for="ex-name">Tên bài tập</label>
+                        <input id="ex-name" type="text" placeholder="Tên bài tập" required value="${this.oldData.name}">                                    
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-descriptions">Mô tả</label>
+                        <textarea name="" id="ex-descriptions" placeholder="Mô tả">${this.oldData.descriptions}</textarea>                                    
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-start-time">Bắt đầu vào</label>
+                        <input type="datetime-local" name="" id="ex-start-time" required value="${this.oldData.start_time}">
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-end-time">Kết thúc vào</label>
+                        <input type="datetime-local" name="" id="ex-end-time" required value="${this.oldData.end_time}">
+                    </div>
+                    <div class="form-row">
+                        <input type="reset" value="Reset">
+                        <a id="update-exercise-submit-btn" href="javascript:void(0)" class="btn">Sửa</a>
+                    </div>
+                    <input type="submit" style="display:none;">
+                </form>
+            </div>                
+        </div>`;
+        // Send request to server to add exercise
+        const addExerciseForm = ctn1.querySelector('#update-exercise-form');
+        addExerciseForm.addEventListener('submit', event => {
+            event.preventDefault();
+            if(!confirm('Xác nhận sửa thông tin?'))
+                return;
+            const [exName, exDes, exStart, exEnd] = ['name', 'descriptions', 'start-time', 'end-time'].map(selector => {
+                return ctn1.querySelector('#ex-' + selector).value;
+            });
+            const attachFileIds = Array.from(ctn2.querySelectorAll('input.update-exercise-modal-file:checked')).map(input => input.dataset.idFile);
+            // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
+            RequestHandler.sendRequest('ajax/exercise', {
+                exerciseId: this.exerciseId, exName, exDes,
+                exStart, exEnd, attachFileIds: JSON.stringify(attachFileIds)
+            }, 'PUT').then(({ e, m, d }) => {
+                if(e) {
+                    alert(e); return;
+                }
+                alert(m);
+                document.body.classList.remove('open-modal');
+                const oldNode = document.querySelector(`#exercise-${this.exerciseId}`);
+                oldNode.outerHTML = d;
+            }).catch(error => console.log(error));
+        });
+        ctn1.querySelector('a#update-exercise-submit-btn').addEventListener('click', () => {
+            ctn1.querySelector('input[type="submit"]').click();
+        });
+        ctn1.querySelector('input[type="reset"]').addEventListener('click', () => {
+            const checkBoxes = modal.querySelectorAll('input.update-exercise-modal-file');
+            checkBoxes.forEach(input => input.checked = false);
+            checkBoxes.forEach(input => {
+                if(this.listOfAttachedFileId.includes(Number(input.dataset.idFile)))
+                    input.checked = true;
+            });
+            modal.querySelector('#ex-name').value = this.oldData.name;
+            modal.querySelector('#ex-descriptions').textContent = this.oldData.descriptions;
+            modal.querySelector('#ex-start-time').value = this.oldData.start_time;
+            modal.querySelector('#ex-end-time').value = this.oldData.end_time;
+        });
+
+        ctn2.innerHTML = '<div class="input-box"><label for="">ĐÍNH KÈM TỆP</label></div> <div class="documents"></div>';
+        const containerOfDocList2 = ctn2.querySelector('.documents');
+        //CTN2
+        for (const categoryId in this.listOfDocCategoryAndDoc) {
+            const { categoryName, listOfDocument } = this.listOfDocCategoryAndDoc[categoryId];
+            if(listOfDocument.length == 0) continue;
+            const docList = document.createElement('div');
+
+            docList.classList.add('doc-list');
+            docList.innerHTML = `<h3 class="doc-category-name">${categoryName}</h3><ul class="doc-ctn"></ul>`;
+            const docCtn = docList.querySelector('.doc-ctn');
+
+            listOfDocument.sort((a, b) => {
+                const fa = a.fileName.substring(a.fileName.indexOf('-') + 1);
+                const fb = b.fileName.substring(a.fileName.indexOf('-') + 1);
+                return fa.localeCompare(fb);
+            });
+            listOfDocument.forEach(({ id, fileName }) => {
+                const fileNameToDisplay = fileName.substring(fileName.indexOf('-') + 1);
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="checkbox" ${this.listOfAttachedFileId.includes(id) ? 'checked' : ''} class="update-exercise-modal-file" data-id-file="${id}" id="add-exercise-modal-file${id}"><label for="add-exercise-modal-file${id}">${fileNameToDisplay}</label>`;
+                docCtn.appendChild(li);
+            });
+
+            containerOfDocList2.appendChild(docList);
+        }
+
+        wrapper.appendChild(ctn1);
+        wrapper.appendChild(ctn2);
+        return wrapper;
+    }
+}
+
 class ModalContent {
     constructor(type, data) {
         this.typeList = {
@@ -500,10 +622,11 @@ class ModalContent {
             'editQuestLib': EditQuestLibContent,
             'editClassFileAttaches': EditClassFileAttaches,
             'manageStudent': ManageStudent,
-            'addExercise': AddExercise
+            'addExercise': AddExercise,
+            'editExercise': EditExercise,
         }
         this.content = new this.typeList[type](data);
-        console.log(type, this.content);
+        // console.log(type, this.content);
         this.data = data;
     }
 

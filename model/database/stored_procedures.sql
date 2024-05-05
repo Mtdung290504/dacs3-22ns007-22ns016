@@ -42,6 +42,11 @@ DROP PROCEDURE IF EXISTS get_all_student_classes;
 DROP PROCEDURE IF EXISTS get_exercise_ids;
 DROP PROCEDURE IF EXISTS get_lecturer_exercise_info;
 DROP PROCEDURE IF EXISTS get_exercise_attach_files;
+DROP PROCEDURE IF EXISTS delete_exercise;
+DROP PROCEDURE IF EXISTS get_submitted_exercise_files;
+DROP PROCEDURE IF EXISTS get_all_submitted_exercise_files;
+DROP PROCEDURE IF EXISTS update_exercise;
+DROP PROCEDURE IF EXISTS reset_exercise_attach_file;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password) **used
@@ -549,6 +554,23 @@ CREATE PROCEDURE create_exercise(
     SELECT LAST_INSERT_ID() AS exercise_id;
 END $
 
+-- update_exercise(exercise_id, start_time, end_time, name, description)
+CREATE PROCEDURE update_exercise(
+    IN exercise_id INT,
+    IN start_time DATETIME,
+    IN end_time DATETIME,
+    IN name TEXT,
+    IN description TEXT
+)BEGIN
+    UPDATE exercises
+    SET
+        start_time = IFNULL(start_time, exercises.start_time),
+        end_time = IFNULL(end_time, exercises.end_time),
+        name = IFNULL(name, exercises.name),
+        description = IFNULL(description, exercises.description)
+    WHERE id = exercise_id;
+END $
+
 -- attach_file_to_exercise(exercise_id, doc_id) //Return của thủ tục trên phục vụ cho thủ tục này
 CREATE PROCEDURE attach_file_to_exercise(
     IN exercise_id INT,
@@ -556,6 +578,14 @@ CREATE PROCEDURE attach_file_to_exercise(
 )BEGIN
     INSERT INTO exercise_attach_files(exercise_id, doc_id)
     VALUES (exercise_id, doc_id);
+END $
+
+-- reset_exercise_attach_file(exercise_id)
+CREATE PROCEDURE reset_exercise_attach_file(
+    IN exercise_id INT
+)BEGIN
+    DELETE FROM exercise_attach_files
+    WHERE exercise_attach_files.exercise_id = exercise_id;
 END $
 
 -- get_exercise_ids(class_id)
@@ -597,11 +627,36 @@ END $
 -- delete_exercise(exercise_id)
 CREATE PROCEDURE delete_exercise(
     IN exercise_id INT
-) BEGIN
+)BEGIN
     DELETE FROM exercise_attach_files WHERE exercise_attach_files.exercise_id = exercise_id;
-    DELETE FROM submitted_exercise_attach_file WHERE submitted_exercises_id = exercise_id;
+
+    DELETE FROM submitted_exercise_attach_file WHERE submitted_exercises_id IN (
+        SELECT id FROM submitted_exercises WHERE submitted_exercises.exercise_id = exercise_id
+    );
     DELETE FROM submitted_exercises WHERE submitted_exercises.exercise_id = exercise_id;
+
     DELETE FROM exercises WHERE id = exercise_id;
+END $
+
+-- get_submitted_exercise_files(exercise_id, student_id)
+CREATE PROCEDURE get_submitted_exercise_files(
+    IN exercise_id INT,
+    IN student_id INT
+)BEGIN
+    SELECT seaf.id, seaf.file_name
+    FROM submitted_exercise_attach_file seaf
+    INNER JOIN submitted_exercises se ON seaf.submitted_exercises_id = se.id
+    WHERE se.exercise_id = exercise_id AND se.student_id = student_id;
+END $
+
+-- get_all_submitted_exercise_files(exercise_id)
+CREATE PROCEDURE get_all_submitted_exercise_files(
+    IN exercise_id INT
+)BEGIN
+    SELECT seaf.id, seaf.file_name
+    FROM submitted_exercise_attach_file seaf
+    INNER JOIN submitted_exercises se ON seaf.submitted_exercises_id = se.id
+    WHERE se.exercise_id = exercise_id;
 END $
 
 -- submit_exercise(student_id, exercise_id) *return id của exercise vừa được thêm vào bảng submitted_exercises ra một giá trị out

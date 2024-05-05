@@ -61,7 +61,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL create_class(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerCreateClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('createClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             const { id, name } = queryResult[0][0][0];
 
             return { id, name };
@@ -86,7 +86,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL create_doc_category(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerCreateDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('createDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             const { id, name } = queryResult[0][0][0];
 
             return { id, name };
@@ -121,7 +121,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL create_doc_n_add_to_doc_category(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('createDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             const { id, file_name } = queryResult[0][0][0];
 
             return { id, file_name };
@@ -134,7 +134,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL update_doc_category_name(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerChangeNameOfDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('changeNameOfDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             return true;
         } catch (error) {
             throw error;
@@ -145,7 +145,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL delete_doc_category(?)', [docCategoryId]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerDeleteDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('deleteDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             return true;
         } catch (error) {
             throw error;
@@ -156,7 +156,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL delete_doc(?)', [docId]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerDeleteDoc - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('deleteDoc - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             return true;
         } catch (error) {
             throw error;
@@ -209,7 +209,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL attach_file_to_class(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerAttachFileToClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('attachFileToClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             if(resultSetHeader.affectedRows == 1)
                 return true;
             return false;
@@ -222,7 +222,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL remove_attach_file_from_class(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerRemoveAttachFileFromClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('removeAttachFileFromClass - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             if(resultSetHeader.affectedRows == 1)
                 return true;
             return false;
@@ -258,13 +258,35 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL create_exercise(?, ?, ?, ?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('addExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             const { exercise_id } = queryResult[0][0][0];
 
             return exercise_id;
         } catch (error) {
             throw error;
-        }  
+        }
+    }
+
+    async updateExercise(exerciseId, exStart, exEnd, exName, exDes) {
+        try {
+            const queryResult = await this.pool.execute('CALL update_exercise(?, ?, ?, ?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('updateExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async resetExerciseAttachFile(exerciseId) {
+        try {
+            const queryResult = await this.pool.execute('CALL reset_exercise_attach_file(?)', [exerciseId]);
+            const [resultSetHeader] = queryResult;
+            console.log('resetExerciseAttachFile - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async attachFileToExercise(exerciseId, docId) {
@@ -296,7 +318,7 @@ class Database {
             const queryResult = await this.pool.query('CALL get_lecturer_exercise_info(?)', [exerciseId]);
             console.log('getExerciseInfoForLecturer - QueryResult:', queryResult, '-----------------------------\n');
 
-            return queryResult[0][0][0]; //id, name, description, start_time, end_time, submission_count
+            return queryResult[0][0][0]; //id, name, descriptions, start_time, end_time, submission_count
         } catch (error) {
             throw error;
         }
@@ -313,8 +335,28 @@ class Database {
         }
     }
 
-    async deleteExercise() {
-        
+    async getAllSubmittedExerciseFiles(exerciseId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_all_submitted_exercise_files(?)', [exerciseId]);
+            console.log('getAllSubmittedExerciseFiles - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0]; //id, file-name
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteExercise(exerciseId) {
+        try {
+            const queryResult = await this.pool.execute('CALL delete_exercise(?)', [exerciseId]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDeleteExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            if(resultSetHeader.affectedRows == 1)
+                return true;
+            return false;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async close() {

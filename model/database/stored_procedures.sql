@@ -47,6 +47,7 @@ DROP PROCEDURE IF EXISTS get_submitted_exercise_files;
 DROP PROCEDURE IF EXISTS get_all_submitted_exercise_files;
 DROP PROCEDURE IF EXISTS update_exercise;
 DROP PROCEDURE IF EXISTS reset_exercise_attach_file;
+DROP PROCEDURE IF EXISTS get_exercise_info_for_student;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password) **used
@@ -659,6 +660,34 @@ CREATE PROCEDURE get_all_submitted_exercise_files(
     WHERE se.exercise_id = exercise_id;
 END $
 
+CREATE PROCEDURE get_exercise_info_for_student(
+    IN exercise_id INT,
+    IN student_id INT
+)BEGIN
+    DECLARE submission_status VARCHAR(20);
+
+    -- Lấy tình trạng nộp bài của sinh viên cho bài tập
+    SELECT 
+        CASE 
+            WHEN submit_time IS NULL THEN 'unsubmitted'
+            WHEN submit_time <= (SELECT end_time FROM exercises WHERE id = exercise_id) THEN 'submitted'
+            ELSE 'submitted-late'
+        END INTO submission_status
+    FROM submitted_exercises
+    WHERE submitted_exercises.student_id = student_id AND submitted_exercises.exercise_id = exercise_id;
+
+    -- Lấy thông tin chi tiết của bài tập nếu nó đã bắt đầu
+    SELECT 
+        e.id AS id,
+        e.name AS name,
+        e.description AS descriptions,
+        e.start_time AS start_time,
+        e.end_time AS end_time,
+        IFNULL(submission_status, 'unsubmitted') AS submission_status
+    FROM exercises e
+    WHERE e.id = exercise_id AND e.start_time <= NOW();
+END $
+
 -- submit_exercise(student_id, exercise_id) *return id của exercise vừa được thêm vào bảng submitted_exercises ra một giá trị out
 CREATE PROCEDURE submit_exercise(
     IN student_id INT,
@@ -803,32 +832,3 @@ CREATE PROCEDURE mark(
 END $
 
 delimiter ;
-
--- lecture signup
--- SET @outId = NULL;CALL signup(1, 'Alo', 'lecturer1', 'password123', @outId);
--- SET @outId = NULL;CALL signup(1, 'Blo', 'lecturer2', 'pass456', @outId);
--- SET @outId = NULL;CALL dacs3v0.signup(1, 'Clo', 'lecturer3', 'pass45678', @outId);
-
--- login
--- CALL login('lecturer1');
--- CALL dacs3v0.LOGIN('mtdung');
-
--- create class
--- SET @classId = NULL; CALL create_class(2, 'Lập trình di động (17)', @classId);
-
--- student signup
--- CALL signup_n_add_student_to_class('Mai Tiến Dũng', 'mtdung', '123456', 1);
--- CALL signup_n_add_student_to_class('Mai Tiến Dũng', 'mtdung', '123456', 2);
--- CALL signup_n_add_student_to_class('Lê Thanh Hải', 'lthai', '123456', 2);
--- CALL signup_n_add_student_to_class('Nguyễn Đăng Hưng', 'ndhung', '123456', 1);
-
--- get all classes
--- CALL get_all_classes(2);
-
--- get list student of class
--- CALL dacs3v0.get_all_student_of_class(2)
-
--- CALL create_doc_category(1, 'Tai lieu lap trinh di dong');
--- call create_doc_n_add_to_doc_category('giao trinh lap trinh di dong', 1);
--- call create_doc_n_add_to_doc_category('slide chuong 1', 1);
--- CALL dacs3v0.get_all_category_n_doc(1);

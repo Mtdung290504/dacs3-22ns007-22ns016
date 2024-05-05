@@ -40,45 +40,10 @@
                 <details class="big-ctn class-view-detail" open>
                     <summary><h3 class="title">BÀI TẬP LỚP</h3></summary>
                     <div class="exercises"><!-- EXERCISES BOX-->
-
                         <!-- EXERCISE -->
-                        <details class="exercise">
-                            <summary>
-                                <h4 class="exercise-name">Bài tập 4/7/2024</h4>
-                                <div style="display: flex;">
-                                    <div class="icon upload" title="Nộp/Sửa bài nộp" data-ex-id="ex001"><i class="fa-solid fa-upload"></i></div>
-                                </div>
-                            </summary>
-                            <p class="desc">
-                                - Làm lab 1 và 2, nén lại và nộp lên hệ thống.
-                            </p>
-                            <p class="attach">
-                                <a href="">Lab1</a>
-                                <a href="">Lab2</a>
-                            </p>
-                            <p class="limit" time="4/7/2024 14:00:00 - 10/7/2024 23:59:00"></p>
-                            <p class="student-status submitted"></p>
-                        </details>
-
-                        <!-- EXERCISE - UNSUBMITTED -->
-                        <details class="exercise unsubmitted">
-                            <summary>
-                                <h4 class="exercise-name">Bài tập 11/7/2024</h4>                                
-                                <div style="display: flex;">
-                                    <div class="icon upload" title="Nộp/sửa bài" data-ex-id="ex002"><i class="fa-solid fa-upload"></i></div>
-                                </div>
-                                
-                            </summary>
-                            <p class="desc">
-                                - Làm lab 3 và 4, nén lại và nộp lên hệ thống.
-                            </p>
-                            <p class="attach">
-                                <a href="">Lab3</a>
-                                <a href="">Lab4</a>
-                            </p>
-                            <p class="limit" time="4/7/2024 14:00:00 - 10/7/2024 23:59:00"></p>
-                            <p class="student-status unsubmitted"></p>
-                        </details>
+                        <% exercises.forEach(exercise => { %>
+                            <%- include('./items/exercise-student-view.ejs', { exercise, rootUrl }) %>
+                        <% }) %>
 
                     </div><!-- END EXERCISES BOX-->
                 </details>

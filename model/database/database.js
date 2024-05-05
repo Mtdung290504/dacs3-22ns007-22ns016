@@ -359,6 +359,17 @@ class Database {
         }
     }
 
+    async getExerciseInfoForStudent(exerciseId, studentId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_exercise_info_for_student(?, ?)', [...arguments]);
+            console.log('getExerciseInfoForStudent - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0][0]; //id, name, descriptions, start_time, end_time, submission_status
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async close() {
         try {
             await this.pool.end();

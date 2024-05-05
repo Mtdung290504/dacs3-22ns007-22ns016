@@ -1,6 +1,5 @@
 const moment = require('moment');
 
-
 class Utils {
     static getRootUrl(req) {
         const protocol = req.protocol; 
@@ -48,6 +47,10 @@ class Utils {
 
     static formatToInputDatetime(value) {
         return moment(value).format('YYYY-MM-DDTHH:mm')
+    }
+
+    static formatToDisplayDatetime(value) {
+        return moment(value).format('DD-MM-YYYY HH:mm')
     }
 }
 

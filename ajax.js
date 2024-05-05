@@ -38,6 +38,7 @@ const userUploadStorage = multer({ storage: userStorage });
         const rootUrl = Utils.getRootUrl(req);
         const className = req.body["class-name"];
         const user = req.session.user;
+        const roles = ['SV', 'GV'];
 
         if (req.session.role != 1) {
             e = "Bạn không có quyền!";
@@ -50,7 +51,7 @@ const userUploadStorage = multer({ storage: userStorage });
             const navItem = `<a href="${rootUrl}/class/${cls.id}">${cls.name}</a>`;
             const gridItem = await ejs.renderFile(
                 path.join(__dirname, "views", "common", "class_grid_item.ejs"),
-                { rootUrl, cls, user }
+                { rootUrl, cls, user, role: roles[req.session.role] }
             );
             m = "Tạo lớp thành công!";
             d = { navItem, gridItem };
@@ -119,7 +120,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });        
-    })
+    });
     router.post("/get-doc-by-doc-category", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -295,7 +296,7 @@ const userUploadStorage = multer({ storage: userStorage });
                         if (errorCode === 0 || errorCode === 1) {
                             student.password = '';
                             student.note = errorMessages[errorCode];
-                            console.log(student.note);
+                            // console.log(student.note);
                         } else {
                             throw error;
                         }
@@ -377,7 +378,49 @@ const userUploadStorage = multer({ storage: userStorage });
         
             // res.json({ e, m, d });
         });
-        router.post('/exercise'); //Add
+        router.post('/exercise', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const exName = req.body['exName'], 
+                    exDes = req.body['exDes'],
+                    exStart = Utils.formatToSqlDatetime(req.body['exStart']), 
+                    exEnd = Utils.formatToSqlDatetime(req.body['exEnd']), 
+                    attachFileIds = JSON.parse(req.body['attachFileIds']);
+            const rootUrl = Utils.getRootUrl(req);
+            
+            // console.log(exName, exDes, exStart, exEnd, attachFileIds);
+            try {
+                const { member_count } = await db.getClassNameAndMember(classId);
+                const exerciseId = await db.addExercise(classId, exStart, exEnd, exName, exDes);
+                for (const docId of attachFileIds) {
+                    await db.attachFileToExercise(exerciseId, docId);
+                }
+                m = "Thêm thành công";
+                
+                const exercise = await db.getExerciseInfoForLecturer(exerciseId);
+                const attachFiles = await db.getAttachFileOfExercise(exerciseId);
+                exercise.attachFiles = attachFiles;
+                exercise.start_time = Utils.formatToDisplayDatetime(exercise.start_time);
+                exercise.end_time = Utils.formatToDisplayDatetime(exercise.end_time);
+                d = await ejs.renderFile(
+                    path.join(__dirname, "views", "class-views", "items", "exercise-lecturer-view.ejs"),
+                    { rootUrl, members: member_count, exercise }
+                );
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        }); //Add
         router.put('/exercise'); //Update
         router.delete('/exercise'); //Delete
         router.post('/attach-file-to-class', formUpload.none(), async (req, res) => {

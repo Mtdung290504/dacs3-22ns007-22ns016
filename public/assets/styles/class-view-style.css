@@ -261,6 +261,14 @@ h3.title.class-view-title a.btn {
     text-transform: capitalize;
 }
 
+time {
+    display: inline-block;
+    border-bottom: 4px solid var(--btn-color);
+    margin: 5px;
+    padding-bottom: 2px;
+    font-weight: 600;
+}
+
 @media screen and (max-width: 730px) {
     .exercises, .test, .documents {
         margin: 5px;

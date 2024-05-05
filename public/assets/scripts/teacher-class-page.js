@@ -1,4 +1,4 @@
-const [btnManageClassDocument, btnManageStudent] = ['#manage-class-documents', '#manage-student'].map(selector => document.querySelector(selector));
+const [btnManageClassDocument, btnManageStudent, btnAddExercise] = ['#manage-class-documents', '#manage-student', '#add-exercise'].map(selector => document.querySelector(selector));
 
 btnManageClassDocument.addEventListener('click', () => {
     resetModal();
@@ -30,4 +30,20 @@ btnManageStudent.addEventListener('click', () => {
     }).catch(error => {
         console.log(error);
     });
-})
+});
+
+btnAddExercise.addEventListener('click', () => {
+    resetModal();
+    RequestHandler.sendRequest('ajax/get-all-doc-and-doc-categories', {})
+    .then(({ e, m, d }) => {
+        if(e) {
+            alert(e);
+            return;
+        }
+        // console.log(d);
+        new ModalContent('addExercise', d).buildModalContent(modal);
+        document.body.classList.add('open-modal');
+    }).catch(error => {
+        console.log(error);
+    });
+});

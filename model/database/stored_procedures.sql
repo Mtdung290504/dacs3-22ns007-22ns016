@@ -39,9 +39,12 @@ DROP PROCEDURE IF EXISTS mark;
 DROP PROCEDURE IF EXISTS check_class_existence;
 DROP PROCEDURE IF EXISTS get_all_lecturer_classes;
 DROP PROCEDURE IF EXISTS get_all_student_classes;
+DROP PROCEDURE IF EXISTS get_exercise_ids;
+DROP PROCEDURE IF EXISTS get_lecturer_exercise_info;
+DROP PROCEDURE IF EXISTS get_exercise_attach_files;
 
 delimiter $
--- signup (is_lecturer, user_name, user_login_name, user_password)
+-- signup (is_lecturer, user_name, user_login_name, user_password) **used
 CREATE PROCEDURE signup(
 	in is_lecturer tinyint,
     in user_name nvarchar(50),
@@ -101,7 +104,7 @@ CREATE PROCEDURE signup(
     END IF;
 END $
 
--- signup_n_add_student_to_class (user_name, user_login_name, user_password, class_id)
+-- signup_n_add_student_to_class (user_name, user_login_name, user_password, class_id) **used
 CREATE PROCEDURE signup_n_add_student_to_class(
     in user_name nvarchar(50),
     in user_login_name varchar(100), 
@@ -145,7 +148,7 @@ CREATE PROCEDURE signup_n_add_student_to_class(
     END IF;
 END $
 
--- login (user_login_name)
+-- login (user_login_name) **used
 create procedure login(
     in user_login_name nvarchar(100)
 ) begin
@@ -155,7 +158,7 @@ create procedure login(
     WHERE ul.login_id = user_login_name;
 end $
 
--- create_class (lecturer_id, class_name)
+-- create_class (lecturer_id, class_name) **used
 create procedure create_class(
     in lecturer_id int,
     in class_name nvarchar(50)
@@ -167,6 +170,7 @@ create procedure create_class(
     WHERE id = LAST_INSERT_ID();
 end $
 
+-- attach_file_to_class (class_id, doc_id) **used
 CREATE PROCEDURE attach_file_to_class(
     IN class_id INT,
     IN doc_id INT
@@ -176,6 +180,7 @@ BEGIN
     VALUES (class_id, doc_id);
 END$
 
+-- remove_attach_file_from_class (class_id, doc_id) **used
 CREATE PROCEDURE remove_attach_file_from_class(
     in class_id int,
     in doc_id int
@@ -183,6 +188,7 @@ CREATE PROCEDURE remove_attach_file_from_class(
     DELETE FROM class_attach_files WHERE class_attach_files.class_id = class_id AND class_attach_files.doc_id = doc_id;
 END$
 
+-- check_class_existence (class_id) **used
 CREATE PROCEDURE check_class_existence(
     IN class_id INT
 ) BEGIN
@@ -193,6 +199,7 @@ CREATE PROCEDURE check_class_existence(
     END IF;
 END $
 
+-- check_access_to_class (user_id, class_id) **used
 CREATE PROCEDURE check_access_to_class(
     in user_id int,
     in class_id int
@@ -219,6 +226,7 @@ CREATE PROCEDURE check_access_to_class(
     END IF;
 END$
 
+-- get_class_members(class_id) **used (Actualy get class name and number of members)
 CREATE PROCEDURE get_class_members(
     IN class_id INT
 )BEGIN
@@ -229,6 +237,7 @@ CREATE PROCEDURE get_class_members(
     GROUP BY c.id;
 END $
 
+-- get_class_attach_files (class_id, lecturer_id) **used
 CREATE PROCEDURE get_class_attach_files(
     IN class_id INT,
     IN lecturer_id INT
@@ -244,9 +253,10 @@ CREATE PROCEDURE get_class_attach_files(
         AND c.lecturer_id = lecturer_id
     );
 END $
--- delete_class *nợ, dữ liệu liên quan quá nhiều, xử lý sau.
 
--- get_all_lecturer_classes (lecturer_id)
+-- delete_class (class_id, lecturer_id) *nợ, dữ liệu liên quan quá nhiều, xử lý sau.
+
+-- get_all_lecturer_classes (lecturer_id) **used
 create procedure get_all_lecturer_classes(
     in lecturer_id int
 ) begin
@@ -256,7 +266,7 @@ create procedure get_all_lecturer_classes(
     WHERE l.id = lecturer_id;
 end $
 
--- get_all_student_classes (student_id)
+-- get_all_student_classes (student_id) **used
 CREATE PROCEDURE get_all_student_classes(
     in student_id int
 )BEGIN
@@ -268,7 +278,7 @@ CREATE PROCEDURE get_all_student_classes(
     WHERE classes_n_students.student_id = student_id;
 END $
 
--- get_all_student_of_class (class_id)
+-- get_all_student_of_class (class_id) **used
 CREATE PROCEDURE get_all_student_of_class(
     IN class_id INT
 ) BEGIN
@@ -287,7 +297,7 @@ CREATE PROCEDURE get_all_student_of_class(
     ORDER BY ul1.login_id ASC;
 END $
 
--- create_doc_category (lecturer_id, category_name)
+-- create_doc_category (lecturer_id, category_name) **used
 create procedure create_doc_category(
     in lecturer_id int,
     in category_name nvarchar(50)
@@ -299,7 +309,7 @@ create procedure create_doc_category(
     WHERE id = LAST_INSERT_ID();
 end $
 
--- create_doc_n_add_to_doc_category (file_name, doc_category_id)
+-- create_doc_n_add_to_doc_category (file_name, doc_category_id) **used
 create procedure create_doc_n_add_to_doc_category(
     in file_name TEXT,
     in doc_category_id int
@@ -308,7 +318,7 @@ create procedure create_doc_n_add_to_doc_category(
     SELECT id, file_name FROM docs WHERE id = last_insert_id();
 end $
 
--- get_all_doc_category_n_doc (lecturer_id)
+-- get_all_doc_category_n_doc (lecturer_id) **used
 CREATE PROCEDURE get_all_doc_category_n_doc(
     IN lecturer_id INT
 ) BEGIN
@@ -318,7 +328,7 @@ CREATE PROCEDURE get_all_doc_category_n_doc(
     WHERE dc.lecturer_id = lecturer_id;
 END $
 
--- get_all_doc_by_doc_category_id (doc_category_id)
+-- get_all_doc_by_doc_category_id (doc_category_id) **used
 CREATE PROCEDURE get_all_doc_by_doc_category_id(
     IN doc_category_id INT
 ) BEGIN
@@ -327,7 +337,7 @@ CREATE PROCEDURE get_all_doc_by_doc_category_id(
     WHERE d.doc_category_id = doc_category_id;
 END $
 
--- update_doc_category_name(doc_category_id, new_name)
+-- update_doc_category_name(doc_category_id, new_name) **used
 CREATE PROCEDURE update_doc_category_name(
     IN doc_category_id INT,
     IN new_name NVARCHAR(50)
@@ -337,7 +347,7 @@ CREATE PROCEDURE update_doc_category_name(
     WHERE id = doc_category_id;
 END $
 
--- delete_doc_category(doc_category_id)
+-- delete_doc_category(doc_category_id) **used
 CREATE PROCEDURE delete_doc_category(
     IN doc_category_id INT
 )
@@ -359,7 +369,7 @@ BEGIN
     DELETE FROM doc_categories WHERE id = doc_category_id;
 END $
 
--- delete_doc(doc_id)
+-- delete_doc(doc_id) **used
 CREATE PROCEDURE delete_doc(
     IN doc_id INT
 )BEGIN
@@ -531,13 +541,12 @@ CREATE PROCEDURE create_exercise(
     IN start_time DATETIME,
     IN end_time DATETIME,
     IN name TEXT,
-    IN description TEXT,
-    OUT exercise_id_out INT
+    IN description TEXT
 )BEGIN
     INSERT INTO exercises(class_id, start_time, end_time, name, description)
     VALUES (class_id, start_time, end_time, name, description);
     
-    SET exercise_id_out = LAST_INSERT_ID();
+    SELECT LAST_INSERT_ID() AS exercise_id;
 END $
 
 -- attach_file_to_exercise(exercise_id, doc_id) //Return của thủ tục trên phục vụ cho thủ tục này
@@ -547,6 +556,52 @@ CREATE PROCEDURE attach_file_to_exercise(
 )BEGIN
     INSERT INTO exercise_attach_files(exercise_id, doc_id)
     VALUES (exercise_id, doc_id);
+END $
+
+-- get_exercise_ids(class_id)
+CREATE PROCEDURE get_exercise_ids(
+    IN class_id INT
+)BEGIN
+    SELECT id FROM exercises WHERE exercises.class_id = class_id;
+END $
+
+-- get_lecturer_exercise_info(exercise_id)
+CREATE PROCEDURE get_lecturer_exercise_info(
+    IN exercise_id INT
+)BEGIN
+    SELECT 
+        e.id AS id,
+        e.name AS name,
+        e.description AS descriptions,
+        e.start_time AS start_time,
+        e.end_time AS end_time,
+        COUNT(se.id) AS submission_count
+    FROM exercises e
+    LEFT JOIN submitted_exercises se ON e.id = se.exercise_id
+    WHERE e.id = exercise_id
+    GROUP BY e.id;
+END $
+
+-- get_exercise_attach_files(exercise_id)
+CREATE PROCEDURE get_exercise_attach_files(
+    IN exercise_id INT
+)BEGIN
+    SELECT 
+        doc_id,
+        file_name
+    FROM exercise_attach_files
+    JOIN docs ON exercise_attach_files.doc_id = docs.id
+    WHERE exercise_attach_files.exercise_id = exercise_id;
+END $
+
+-- delete_exercise(exercise_id)
+CREATE PROCEDURE delete_exercise(
+    IN exercise_id INT
+) BEGIN
+    DELETE FROM exercise_attach_files WHERE exercise_attach_files.exercise_id = exercise_id;
+    DELETE FROM submitted_exercise_attach_file WHERE submitted_exercises_id = exercise_id;
+    DELETE FROM submitted_exercises WHERE submitted_exercises.exercise_id = exercise_id;
+    DELETE FROM exercises WHERE id = exercise_id;
 END $
 
 -- submit_exercise(student_id, exercise_id) *return id của exercise vừa được thêm vào bảng submitted_exercises ra một giá trị out
@@ -691,10 +746,6 @@ CREATE PROCEDURE mark(
     SET score = total_score
     WHERE id = submitted_test_id;
 END $
-
--- create_split_group()
--- create_sub_group_of_group()
--- join_sub_group()
 
 delimiter ;
 

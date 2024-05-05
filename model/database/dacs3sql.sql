@@ -102,10 +102,11 @@ create table if not exists submitted_exercises (
 	student_id int not null,
     exercise_id int not null,
     submit_time timestamp default current_timestamp,
-    foreign key (student_id) references students(id),
+    foreign key (student_id) references classes_n_students(student_id),
     foreign key (exercise_id) references exercises(id)
 );
 create table if not exists submitted_exercise_attach_file (
+    id int primary key auto_increment,
 	submitted_exercises_id int not null,
     file_name text,
     foreign key (submitted_exercises_id) references submitted_exercises(id)

@@ -215,7 +215,7 @@ class Database {
             return false;
         } catch (error) {
             throw error;
-        }       
+        }
     }
 
     async removeAttachFileFromClass(classId, docId) {
@@ -252,6 +252,69 @@ class Database {
             }
             throw error;
         }
+    }
+
+    async addExercise(classId, exStart, exEnd, exName, exDes) {
+        try {
+            const queryResult = await this.pool.execute('CALL create_exercise(?, ?, ?, ?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerDocAndAddToDocCategory - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            const { exercise_id } = queryResult[0][0][0];
+
+            return exercise_id;
+        } catch (error) {
+            throw error;
+        }  
+    }
+
+    async attachFileToExercise(exerciseId, docId) {
+        try {
+            const queryResult = await this.pool.execute('CALL attach_file_to_exercise(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('lecturerAttachFileToExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            if(resultSetHeader.affectedRows == 1)
+                return true;
+            return false;
+        } catch (error) {
+            throw error;
+        }   
+    }
+
+    async getExerciseIds(classId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_exercise_ids(?)', [classId]);
+            console.log('getExerciseIds - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0]; //id
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getExerciseInfoForLecturer(exerciseId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_lecturer_exercise_info(?)', [exerciseId]);
+            console.log('getExerciseInfoForLecturer - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0][0]; //id, name, description, start_time, end_time, submission_count
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getAttachFileOfExercise(exerciseId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_exercise_attach_files(?)', [exerciseId]);
+            console.log('getAttachFileOfExercise - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0]; //id, name, descriptions, start_time, end_time, submission_count
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteExercise() {
+        
     }
 
     async close() {

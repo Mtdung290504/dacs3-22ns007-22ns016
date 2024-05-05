@@ -389,6 +389,110 @@ class ManageStudent {
     }
 }
 
+class AddExercise {
+    constructor({ listOfDocCategoryAndDoc, rootUrl }) {
+        Object.assign(this, { listOfDocCategoryAndDoc, rootUrl });
+        this.className = document.querySelector('h2.class-name').textContent;
+        this.title = `Giao bài tập lớp ${this.className}`;
+    }
+
+    getModalBodyContent() {
+        const wrapper = document.createElement('div');
+        const ctn1 = document.createElement('div');
+        const ctn2 = document.createElement('div');
+
+        wrapper.classList.add('wrapper', 'assign-homework');
+        [ctn1, ctn2].forEach(ctn => ctn.classList.add('ctn'));
+
+        ctn1.innerHTML = `<h3>THÔNG TIN BÀI TẬP</h3>
+        <div class="form-box">
+            <div class="input-box">
+                <form id="add-exercise-form">
+                    <div class="form-row">
+                        <label for="ex-name">Tên bài tập</label>
+                        <input id="ex-name" type="text" placeholder="Tên bài tập" required>                                    
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-descriptions">Mô tả</label>
+                        <textarea name="" id="ex-descriptions" placeholder="Mô tả"></textarea>                                    
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-start-time">Bắt đầu vào</label>
+                        <input type="datetime-local" name="" id="ex-start-time" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="ex-end-time">Kết thúc vào</label>
+                        <input type="datetime-local" name="" id="ex-end-time" required>
+                    </div>
+                    <div class="form-row">
+                        <input type="reset" value="Tạo lại">
+                        <a id="add-exercise-submit-btn" href="javascript:void(0)" class="btn">Thêm</a>
+                    </div>
+                    <input type="submit" style="display:none;">
+                </form>
+            </div>                
+        </div>`;
+        // Send request to server to add exercise
+        const addExerciseForm = ctn1.querySelector('#add-exercise-form');
+        addExerciseForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const [exName, exDes, exStart, exEnd] = ['name', 'descriptions', 'start-time', 'end-time'].map(selector => {
+                return ctn1.querySelector('#ex-' + selector).value;
+            });
+            const attachFileIds = Array.from(ctn2.querySelectorAll('input.add-exercise-modal-file:checked')).map(input => input.dataset.idFile);
+            // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
+            RequestHandler.sendRequest('ajax/exercise', {
+                exName, exDes, exStart, exEnd, attachFileIds: JSON.stringify(attachFileIds)
+            }).then(({ e, m, d }) => {
+                if(e) {
+                    alert(e); return;
+                }
+                alert(m);
+                document.body.classList.remove('open-modal');
+                document.querySelector('.exercises').innerHTML += d;
+            }).catch(error => console.log(error));
+        });
+        ctn1.querySelector('a#add-exercise-submit-btn').addEventListener('click', () => {
+            ctn1.querySelector('input[type="submit"]').click();
+        });
+        ctn1.querySelector('input[type="reset"]').addEventListener('click', () => {
+            modal.querySelectorAll('input.add-exercise-modal-file').forEach(input => input.checked = false);
+        });
+
+        ctn2.innerHTML = '<div class="input-box"><label for="">ĐÍNH KÈM TỆP</label></div> <div class="documents"></div>';
+        const containerOfDocList2 = ctn2.querySelector('.documents');
+        //CTN2
+        for (const categoryId in this.listOfDocCategoryAndDoc) {
+            const { categoryName, listOfDocument } = this.listOfDocCategoryAndDoc[categoryId];
+            if(listOfDocument.length == 0) continue;
+            const docList = document.createElement('div');
+
+            docList.classList.add('doc-list');
+            docList.innerHTML = `<h3 class="doc-category-name">${categoryName}</h3><ul class="doc-ctn"></ul>`;
+            const docCtn = docList.querySelector('.doc-ctn');
+
+            listOfDocument.sort((a, b) => {
+                const fa = a.fileName.substring(a.fileName.indexOf('-') + 1);
+                const fb = b.fileName.substring(a.fileName.indexOf('-') + 1);
+                return fa.localeCompare(fb);
+            });
+            listOfDocument.forEach(({ id, fileName }) => {
+                // <li><input type="checkbox" name="1" id="1"><label for="1">Bài tập chương 1</label></li>
+                const fileNameToDisplay = fileName.substring(fileName.indexOf('-') + 1);
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="checkbox" class="add-exercise-modal-file" data-id-file="${id}" id="add-exercise-modal-file${id}"><label for="add-exercise-modal-file${id}">${fileNameToDisplay}</label>`;
+                docCtn.appendChild(li);
+            });
+
+            containerOfDocList2.appendChild(docList);
+        }
+
+        wrapper.appendChild(ctn1);
+        wrapper.appendChild(ctn2);
+        return wrapper;
+    }
+}
+
 class ModalContent {
     constructor(type, data) {
         this.typeList = {
@@ -396,6 +500,7 @@ class ModalContent {
             'editQuestLib': EditQuestLibContent,
             'editClassFileAttaches': EditClassFileAttaches,
             'manageStudent': ManageStudent,
+            'addExercise': AddExercise
         }
         this.content = new this.typeList[type](data);
         console.log(type, this.content);

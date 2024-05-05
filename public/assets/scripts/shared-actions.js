@@ -71,7 +71,7 @@ function openModal(type, docCategoryId) {
     });
 }
 
-function resetModal(body, header) {
+function resetModal(body = true, header = true) {
     if(header)
         document.body.querySelector('.modal .modal-header').innerHTML = '';
     if(body)

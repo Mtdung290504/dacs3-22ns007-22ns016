@@ -44,48 +44,16 @@
                 </details>
 
                 <details class="big-ctn class-view-detail" open>
-                    <summary><h3 class="title class-view-title">BÀI TẬP LỚP <a href="javascript:void(0)" class="btn">giao bài tập</a></h3></summary>
+                    <summary><h3 class="title class-view-title">BÀI TẬP LỚP <a href="javascript:void(0)" id="add-exercise" class="btn">giao bài tập</a></h3></summary>
                     <div class="exercises">
 
-                        <details class="exercise">
-                            <summary>
-                                <h4 class="exercise-name">Bài tập 4/7/2024</h4>
-                                <div style="display: flex;">
-                                    <div class="icon view-detail" title="Xem chi tiết" data-ex-id="ex001"><i class="fa-solid fa-eye"></i></div>
-                                    <div class="icon edit" title="Sửa" data-ex-id="ex001"><i class="fas fa-edit"></i></div>
-                                    <div class="icon delete" title="Xóa" data-ex-id="ex001"><i class="fa fa-trash" aria-hidden="true"></i></div>
-                                </div>
-                            </summary>
-                            <p class="desc">
-                                - Làm lab 1 và 2, nén lại và nộp lên hệ thống.
-                            </p>
-                            <p class="attach">
-                                <a href="">Lab1</a>
-                                <a href="">Lab2</a>
-                            </p>
-                            <p class="limit" time="4/7/2024 - 11/7/2024"></p>
-                            <p class="status" limit="40" current="26"></p>
-                        </details>
-
-                        <details class="exercise">
-                            <summary>
-                                <h4 class="exercise-name">Bài tập 4/7/2024</h4>
-                                <div style="display: flex;">
-                                    <div class="icon view-detail" title="Xem chi tiết" data-ex-id="ex001"><i class="fa-solid fa-eye"></i></div>
-                                    <div class="icon edit" title="Sửa" data-ex-id="ex001"><i class="fas fa-edit"></i></div>
-                                    <div class="icon delete" title="Xóa" data-ex-id="ex001"><i class="fa fa-trash" aria-hidden="true"></i></div>
-                                </div>
-                            </summary>
-                            <p class="desc">
-                                - Làm lab 1 và 2, nén lại và nộp lên hệ thống.
-                            </p>
-                            <p class="attach">
-                                <a href="">Lab1</a>
-                                <a href="">Lab2</a>
-                            </p>
-                            <p class="limit" time="4/7/2024 - 11/7/2024"></p>
-                            <p class="status" limit="40" current="26"></p>
-                        </details>
+                        <% if (exercises.length == 0) { %>
+                            <h3 style="margin: 10px">CHƯA CÓ BÀI TẬP NÀO</h3>
+                        <% } else { %>
+                            <% exercises.forEach(exercise => { %>
+                                <%- include('./items/exercise-lecturer-view.ejs', { exercise, members, rootUrl }) %>
+                            <% }) %>
+                        <% } %>
 
                     </div>
                 </details>

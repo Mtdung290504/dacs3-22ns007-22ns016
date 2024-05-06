@@ -30,8 +30,8 @@
                         <% if (listOfAttachFile.length == 0) { %>
                             <h3 style="margin: 10px">CHƯA CÓ TÀI LIỆU NÀO</h3>
                         <% } else { %>
-                            <% listOfAttachFile.forEach(({ doc_id, file_name }) => { %>
-                                <a target="_blank" data-file-id="<%= doc_id %>" href="<%= rootUrl %>/uploads/<%= file_name %>"><%= file_name.substring(file_name.indexOf('-') + 1) %></a>
+                            <% listOfAttachFile.forEach(({ doc_id, file_name, category_name }) => { %>
+                                <a data-category-name="<%= category_name %>" target="_blank" data-file-id="<%= doc_id %>" href="<%= rootUrl %>/uploads/<%= file_name %>"><%= file_name.substring(file_name.indexOf('-') + 1) %></a>
                             <% }) %>
                         <% } %>
                     </div>

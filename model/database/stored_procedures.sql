@@ -4,6 +4,7 @@ DROP PROCEDURE IF EXISTS signup;
 DROP PROCEDURE IF EXISTS signup_n_add_student_to_class;
 DROP PROCEDURE IF EXISTS login;
 DROP PROCEDURE IF EXISTS create_class;
+DROP PROCEDURE IF EXISTS update_class_name;
 DROP PROCEDURE IF EXISTS attach_file_to_class;
 DROP PROCEDURE IF EXISTS remove_attach_file_from_class;
 DROP PROCEDURE IF EXISTS check_access_to_class;
@@ -179,12 +180,21 @@ create procedure create_class(
     WHERE id = LAST_INSERT_ID();
 end $
 
+-- update_class_name (class_id, new_name) **used
+create procedure update_class_name(
+    in class_id int,
+    in new_name nvarchar(50)
+) begin
+    UPDATE classes
+    SET name = new_name
+    WHERE id = class_id;
+end $
+
 -- attach_file_to_class (class_id, doc_id) **used
 CREATE PROCEDURE attach_file_to_class(
     IN class_id INT,
     IN doc_id INT
-)
-BEGIN
+)BEGIN
     INSERT INTO class_attach_files (class_id, doc_id)
     VALUES (class_id, doc_id);
 END$
@@ -251,9 +261,10 @@ CREATE PROCEDURE get_class_attach_files(
     IN class_id INT,
     IN lecturer_id INT
 )BEGIN
-    SELECT caf.doc_id, d.file_name
+    SELECT caf.doc_id, d.file_name, dc.name AS category_name
     FROM class_attach_files caf
     INNER JOIN docs d ON caf.doc_id = d.id
+    INNER JOIN doc_categories dc ON d.doc_category_id = dc.id
     WHERE caf.class_id = class_id
     AND EXISTS (
         SELECT 1
@@ -717,8 +728,7 @@ END $
 CREATE PROCEDURE attach_file_to_submitted_exercise(
     IN submitted_exercises_id INT,
     IN file_name TEXT
-)
-BEGIN
+)BEGIN
     -- Thêm file đính kèm vào bài tập đã submit
     INSERT INTO submitted_exercise_attach_file(submitted_exercises_id, file_name)
     VALUES (submitted_exercises_id, file_name);

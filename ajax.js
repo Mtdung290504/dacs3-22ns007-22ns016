@@ -247,6 +247,30 @@ const userUploadStorage = multer({ storage: userStorage });
 
 //Lecturer classpage requests
     //Executes
+        router.put('/class-name', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const newName = req.body['newName'];
+            
+            // console.log(exName, exDes, exStart, exEnd, attachFileIds);
+            try {
+                await db.updateClassName(classId, newName);
+                m = "ok";
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        });
         router.get('/student-from-class', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -566,8 +590,7 @@ const userUploadStorage = multer({ storage: userStorage });
         
             res.json({ e, m, d });
         });
-        router.get('/exercise-info');
-        router.get('/list-of-students');
+        router.get('/submitted-exercise/:exerciseId');
 
 //Student classpage requests
     //Executes
@@ -590,7 +613,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 const { submitted_exercise_id } = await db.getOrCreateAndGetSubmittedExerciseId(exerciseId, user.id);
                 for (const file of req['files']) {
                     // console.log(submitted_exercise_id, `${user.id}/${file.filename}`);
-                    const { id, file_name } = await db.attachFileToExercise(submitted_exercise_id, `${user.id}/${file.filename}`);
+                    const { id, file_name } = await db.attachFileToSubmittedExercise(submitted_exercise_id, `${user.id}/${file.filename}`);
                     listOfSubmittedFiles.push({ id, file_name });
                 }
                 const { submission_status } = await db.getExerciseInfoForStudent(exerciseId, user.id);

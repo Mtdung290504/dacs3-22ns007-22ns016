@@ -77,3 +77,45 @@ function resetModal(body = true, header = true) {
     if(body)
         document.body.querySelector('.modal .modal-body').innerHTML = '';
 }
+
+function groupDoc() {
+    const container = document.querySelector('.documents');
+    const listOfDocument = container.querySelectorAll('a[data-file-id]');
+    const docCategoryAndDoc = {};
+
+    container.innerHTML = '';
+
+    listOfDocument.forEach(document => {
+        const categoryName = document.dataset.categoryName;
+        const listDocumentOfCategory = docCategoryAndDoc[categoryName];
+
+        if(listDocumentOfCategory) {
+            listDocumentOfCategory.push(document);
+            listDocumentOfCategory.sort((a, b) => a.textContent.localeCompare(b.textContent));
+            return;
+        }
+
+        docCategoryAndDoc[categoryName] = [document];
+        container.innerHTML += `<h3 class="title">${categoryName}</h3><div style="margin-left: 15px;" data-category-name="${categoryName}"></div>`;
+    });
+
+    for (const docCategory in docCategoryAndDoc) {
+        if (Object.hasOwnProperty.call(docCategoryAndDoc, docCategory)) {
+            docCategoryAndDoc[docCategory].forEach(document => {
+                container.querySelector(`div[data-category-name="${docCategory}"]`).appendChild(document);
+            });
+        }
+    }
+}
+
+function unGroupDoc() {
+    const container = document.querySelector('.documents');
+    const listOfDocument = container.querySelectorAll('a[data-file-id]');
+
+    container.innerHTML = '';
+
+    const sortedListOfDocument = Array.from(listOfDocument).sort((a, b) => a.textContent.localeCompare(b.textContent));
+    sortedListOfDocument.forEach(document => container.appendChild(document));
+}
+
+groupDoc();

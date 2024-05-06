@@ -74,6 +74,17 @@ class Database {
         }
     }
 
+    async updateClassName(classId, newName) {
+        try {
+            const queryResult = await this.pool.execute('CALL update_class_name(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('updateClassName - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async getAllClass(userId, role) {
         try {
             const procedureCall = `CALL ${(role == 1) ? 'get_all_lecturer_classes' : 'get_all_student_classes'} (?)`;
@@ -385,7 +396,7 @@ class Database {
         }
     }
 
-    async attachFileToExercise(submitExerciseId, fileName) {
+    async attachFileToSubmittedExercise(submitExerciseId, fileName) {
         try {
             const queryResult = await this.pool.execute('CALL attach_file_to_submitted_exercise(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;

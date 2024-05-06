@@ -80,6 +80,15 @@ class EditDocumentContent {
             <input type="text" name="category-name" id="category-name" placeholder="Tên mới...">
             <div class="btn">Xác nhận</div>
         </div>`;
+        const editCategoryNameInput = inputBox1.querySelector('input#category-name');
+        editCategoryNameInput.addEventListener('focus', () => {
+            editCategoryNameInput.value = modal.querySelector('.modal-header').textContent.replace('Chỉnh sửa danh mục tài liệu: ', '');
+        });
+        editCategoryNameInput.addEventListener('blur', () => {
+            const oldCategoryName = modal.querySelector('.modal-header').textContent.replace('Chỉnh sửa danh mục tài liệu: ', '');
+            if(editCategoryNameInput.value == oldCategoryName)
+                editCategoryNameInput.value = '';
+        });
         inputBox1.querySelector('.btn').addEventListener('click', ()=>{
             //Send request change name
             const input = inputBox1.querySelector('input[type="text"]');
@@ -229,7 +238,7 @@ class EditClassFileAttaches {
                 // <li><input type="checkbox" name="1" id="1"><label for="1">Bài tập chương 1</label></li>
                 const fileNameToDisplay = fileName.substring(fileName.indexOf('-') + 1);
                 const li = document.createElement('li');
-                li.innerHTML = `<input type="checkbox" id="edt-class-attach-file--file${id}"><label for="edt-class-attach-file--file${id}">${fileNameToDisplay}</label>`;
+                li.innerHTML = `<input data-category-name="${categoryName}" type="checkbox" id="edt-class-attach-file--file${id}"><label for="edt-class-attach-file--file${id}">${fileNameToDisplay}</label>`;
                 const checkBox = li.querySelector('input');
                 checkBox.addEventListener('input', event => {
                     if(event.target.checked) {
@@ -242,12 +251,14 @@ class EditClassFileAttaches {
                             }
                             if(m == 'ok') {
                                 const documentsContainer = document.querySelector('.documents');
-                                const aToInner = `<a target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
+                                unGroupDoc();
+                                const aToInner = `<a data-category-name="${categoryName}" target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
                                 ctn1.innerHTML += aToInner;
                                 if(documentsContainer.querySelector('h3')) {
                                     documentsContainer.innerHTML = '';
                                 }
                                 documentsContainer.innerHTML += aToInner;
+                                groupDoc();
                             }
                         }).catch(error => console.error(error));
                         return;
@@ -264,16 +275,17 @@ class EditClassFileAttaches {
                             const documentsContainer = document.querySelector('.documents');
                             const aToRemove = documentsContainer.querySelectorAll(`a[data-file-id="${id}"]`);
                             const aToRemoveFromModal = ctn1.querySelectorAll(`a[data-file-id="${id}"]`);
-                            aToRemove.forEach(a => {documentsContainer.removeChild(a)});
+                            aToRemove.forEach(a => {documentsContainer.innerHTML = documentsContainer.innerHTML.replace(a.outerHTML, '')});
                             aToRemoveFromModal.forEach(a => {ctn1.removeChild(a)});
                             if(documentsContainer.childElementCount == 0)
                                 documentsContainer.innerHTML = '<h3 style="margin: 10px">CHƯA CÓ BÀI TẬP NÀO</h3>';
                         }
                     }).catch(error => console.error(error));
                 });
+                
                 if(this.listOfAttachedFileId.includes(id)) {
                     checkBox.checked = true;
-                    const aToInner = `<a target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
+                    const aToInner = `<a data-category-name="${categoryName}" target="_blank" data-file-id="${id}" href="${this.rootUrl}/uploads/${fileName}"><span class="text">${fileNameToDisplay}</span></a>`;
                     ctn1.innerHTML += aToInner;
                 }
                     

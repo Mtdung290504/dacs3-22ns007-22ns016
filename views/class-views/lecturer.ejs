@@ -25,6 +25,7 @@
                 <details class="big-ctn class-view-detail" open>
                     <summary><h3 class="title">TÙY CHỌN</h3></summary>
                     <div class="chooses">
+                        <a onclick="editClassName()" href="javascript:void(0)" class="btn">đổi tên lớp</a>
                         <a id="manage-student" href="javascript:void(0)" class="btn">quản lý sinh viên</a>
                         <a href="javascript:void(0)" class="btn red">giải tán lớp</a>                        
                     </div>
@@ -36,8 +37,8 @@
                         <% if (listOfAttachFile.length == 0) { %>
                             <h3 style="margin: 10px">CHƯA CÓ TÀI LIỆU NÀO</h3>
                         <% } else { %>
-                            <% listOfAttachFile.forEach(({ doc_id, file_name }) => { %>
-                                <a target="_blank" data-file-id="<%= doc_id %>" href="<%= rootUrl %>/uploads/<%= file_name %>"><%= file_name.substring(file_name.indexOf('-') + 1) %></a>
+                            <% listOfAttachFile.forEach(({ doc_id, file_name, category_name }) => { %>
+                                <a data-category-name="<%= category_name %>" target="_blank" data-file-id="<%= doc_id %>" href="<%= rootUrl %>/uploads/<%= file_name %>"><%= file_name.substring(file_name.indexOf('-') + 1) %></a>
                             <% }) %>
                         <% } %>
                     </div>

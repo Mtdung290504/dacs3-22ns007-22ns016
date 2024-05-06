@@ -105,3 +105,24 @@ function editExercise(event, exerciseId) {
         console.log(error);
     });
 }
+
+function editClassName() {
+    const newName = prompt('Nhập tên lớp mới', document.querySelector('.class-name').textContent);
+    if(newName.length > 49) {
+        alert('Tên lớp quá dài');
+        return;
+    }
+
+    RequestHandler.sendRequest('ajax/class-name', {newName}, 'PUT')
+    .then(({ e, m, d }) => {
+        if(e) {
+            alert(e);
+            return;
+        }
+        if(m == 'ok') {
+            document.querySelector('.class-name').textContent = newName;
+            alert('Cập nhật thành công');
+        }
+
+    }).catch(error => console.log(error));
+}

@@ -5,11 +5,15 @@ const saltRounds = 10;
 
 class Database {
     constructor() {
-        this.pool = mysql.createPool({
+        const config = {
             host: 'localhost',
             user: 'root',
             password: '123456',
-            database: 'dacs3v0',
+            database: 'dacs3v0'
+        }
+
+        this.pool = mysql.createPool({
+            ...config,
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0
@@ -293,7 +297,7 @@ class Database {
         try {
             const queryResult = await this.pool.execute('CALL attach_file_to_exercise(?, ?)', [...arguments]);
             const [resultSetHeader] = queryResult;
-            console.log('lecturerAttachFileToExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            console.log('attachFileToExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
             if(resultSetHeader.affectedRows == 1)
                 return true;
             return false;
@@ -368,6 +372,62 @@ class Database {
         } catch (error) {
             throw error;
         }
+    }
+
+    async getOrCreateAndGetSubmittedExerciseId(exerciseId, studentId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_or_create_n_get_submitted_exercise_id(?, ?)', [...arguments]);
+            console.log('getOrCreateAndGetSubmittedExerciseId - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0][0]; //id
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async attachFileToExercise(submitExerciseId, fileName) {
+        try {
+            const queryResult = await this.pool.execute('CALL attach_file_to_submitted_exercise(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('attachFileToExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            
+            return queryResult[0][0][0];
+        } catch (error) {
+            throw error;
+        }   
+    }
+
+    async getSubmittedExerciseFiles(exerciseId, studentId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_submitted_exercise_files(?, ?)', [...arguments]);
+            console.log('getSubmittedExerciseFiles - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0]; //id, file_name
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteAttachFileOfSubmittedExercise(submittedExerciseAttachFileId, studentId, exerciseId) {
+        try {
+            const queryResult = await this.pool.execute('CALL delete_submitted_exercise_attach_file(?, ?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('attachFileToExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }   
+    }
+
+    async unsubmitExercise(exerciseId, studentId) {
+        try {
+            const queryResult = await this.pool.execute('CALL unsubmit_exercise(?, ?)', [...arguments]);
+            const [resultSetHeader] = queryResult;
+            console.log('unsubmitExercise - ResultSetHeader:', resultSetHeader, '-----------------------------\n');
+            return true;
+        } catch (error) {
+            throw error;
+        }   
     }
 
     async close() {

@@ -6,7 +6,7 @@
         </div>
     </summary>
     <p class="desc" <%- exercise.descriptions ? '' : 'style="display: none;"' %>>
-        <%= exercise.descriptions %>
+        <%- exercise.descriptions.replaceAll('\n', '<br>') %>
     </p>
     <p class="attach" <%- exercise.attachFiles.length ? '' : ' style="display: none;" ' %>>
         <% exercise.attachFiles.forEach(({ file_name }) => { %>

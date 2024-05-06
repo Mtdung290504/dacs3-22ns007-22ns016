@@ -48,6 +48,9 @@ DROP PROCEDURE IF EXISTS get_all_submitted_exercise_files;
 DROP PROCEDURE IF EXISTS update_exercise;
 DROP PROCEDURE IF EXISTS reset_exercise_attach_file;
 DROP PROCEDURE IF EXISTS get_exercise_info_for_student;
+DROP PROCEDURE IF EXISTS get_or_create_n_get_submitted_exercise_id;
+DROP PROCEDURE IF EXISTS delete_submitted_exercise_attach_file;
+DROP PROCEDURE IF EXISTS unsubmit_exercise;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password) **used
@@ -660,6 +663,7 @@ CREATE PROCEDURE get_all_submitted_exercise_files(
     WHERE se.exercise_id = exercise_id;
 END $
 
+-- get_exercise_info_for_student(exercise_id, student_id)
 CREATE PROCEDURE get_exercise_info_for_student(
     IN exercise_id INT,
     IN student_id INT
@@ -688,28 +692,90 @@ CREATE PROCEDURE get_exercise_info_for_student(
     WHERE e.id = exercise_id AND e.start_time <= NOW();
 END $
 
--- submit_exercise(student_id, exercise_id) *return id của exercise vừa được thêm vào bảng submitted_exercises ra một giá trị out
-CREATE PROCEDURE submit_exercise(
-    IN student_id INT,
+CREATE PROCEDURE get_or_create_n_get_submitted_exercise_id(
     IN exercise_id INT,
-    OUT submitted_exercise_id INT
+    IN student_id INT
 )BEGIN
-    -- Thêm bài tập đã submit vào bảng submitted_exercises
-    INSERT INTO submitted_exercises(student_id, exercise_id)
-    VALUES (student_id, exercise_id);
+    DECLARE submitted_exercise_id INT;
 
-    -- Lấy ID của bài tập đã submit vừa được thêm
-    SET submitted_exercise_id = LAST_INSERT_ID();
+    -- Kiểm tra xem đã tồn tại bài nộp của sinh viên cho bài tập này chưa
+    SELECT id INTO submitted_exercise_id
+    FROM submitted_exercises
+    WHERE submitted_exercises.student_id = student_id AND submitted_exercises.exercise_id = exercise_id;
+
+    -- Nếu chưa tồn tại, tạo mới bài nộp và lấy id
+    IF submitted_exercise_id IS NULL THEN
+        INSERT INTO submitted_exercises(student_id, exercise_id) VALUES (student_id, exercise_id);
+        SET submitted_exercise_id = LAST_INSERT_ID();
+    END IF;
+
+    -- Trả về id của bài nộp
+    SELECT submitted_exercise_id;
 END $
 
 -- attach_file_to_submitted_exercise(submitted_exercises_id, file_name)
 CREATE PROCEDURE attach_file_to_submitted_exercise(
     IN submitted_exercises_id INT,
     IN file_name TEXT
-)BEGIN
+)
+BEGIN
     -- Thêm file đính kèm vào bài tập đã submit
     INSERT INTO submitted_exercise_attach_file(submitted_exercises_id, file_name)
     VALUES (submitted_exercises_id, file_name);
+
+    -- Cập nhật cột submit_time
+    UPDATE submitted_exercises
+    SET submit_time = CURRENT_TIMESTAMP
+    WHERE id = submitted_exercises_id;
+
+    -- Trả về thông tin về file vừa được thêm vào
+    SELECT id, file_name
+    FROM submitted_exercise_attach_file 
+    WHERE id = LAST_INSERT_ID();
+END $
+
+-- delete_submitted_exercise_attach_file(submitted_exercise_attach_file_id, student_id, exercise_id)
+CREATE PROCEDURE delete_submitted_exercise_attach_file(
+    IN submitted_exercise_attach_file_id INT,
+    IN student_id INT,
+    IN exercise_id INT
+)BEGIN
+    -- Xóa attach_file từ bài tập
+    DELETE FROM submitted_exercise_attach_file 
+    WHERE id = submitted_exercise_attach_file_id;
+    
+    -- Kiểm tra xem submitted_exercise còn attach_file nào không
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM submitted_exercise_attach_file 
+        WHERE submitted_exercises_id IN (
+            SELECT id 
+            FROM submitted_exercises 
+            WHERE submitted_exercises.student_id = student_id AND submitted_exercises.exercise_id = exercise_id
+        )
+    ) THEN
+        -- Nếu không còn attach_file nào, xóa submitted_exercise
+        DELETE FROM submitted_exercises 
+        WHERE submitted_exercises.student_id = student_id AND submitted_exercises.exercise_id = exercise_id;
+    END IF;
+END $
+
+-- unsubmit_exercise(exercise_id, student_id)
+CREATE PROCEDURE unsubmit_exercise(
+    IN exercise_id INT,
+    IN student_id INT
+)BEGIN
+    -- Xóa tất cả attach_file của submitted_exercise
+    DELETE FROM submitted_exercise_attach_file 
+    WHERE submitted_exercises_id IN (
+        SELECT id 
+        FROM submitted_exercises 
+        WHERE student_id = student_id AND exercise_id = exercise_id
+    );
+
+    -- Xóa submitted_exercise
+    DELETE FROM submitted_exercises 
+    WHERE student_id = student_id AND exercise_id = exercise_id;
 END $
 
 -- create_test(class_id, start_time, end_time, name, description, quest_category_id, number_quest_of_tests)

@@ -615,6 +615,154 @@ class EditExercise {
     }
 }
 
+class SubmitExercise {
+    constructor({ exerciseId, exerciseName, submittedFiles, rootUrl }) {
+        this.title = `Chỉnh sửa bài tập: ${exerciseName}`;
+        this.exerciseId = exerciseId;
+        this.exerciseName = exerciseName;
+        this.submittedFiles = submittedFiles;
+        this.rootUrl = rootUrl;
+    }
+
+    getModalBodyContent() {
+        const exerciseId = this.exerciseId;
+        const rootUrl = this.rootUrl;
+        const exerciseBoxToUpdate = document.querySelector(`details#exercise-${exerciseId}`);
+        const exerciseStatusToUpdate = exerciseBoxToUpdate.querySelector('p.student-status');
+        const container = document.createElement('div');
+        const docList = document.createElement('div');
+        const inputs = document.createElement('div');
+        const deleteBtn = document.createElement('div');
+        const [inputBox2, inputBox3] = [
+            document.createElement('div'), 
+            document.createElement('div')
+        ].map(ib => {
+            ib.classList.add('input-box');
+            return ib;
+        });
+
+        docList.innerHTML = '<h3>DANH SÁCH FILE ĐÃ NỘP</h3>';
+
+        container.classList.add('wrapper', 'edit-doc');
+        docList.classList.add('ctn', 'doc-list');
+        inputs.classList.add('ctn', 'inputs');
+
+        this.submittedFiles.forEach(({ id, file_name }) => createDocItemAndAddToList(id, file_name));
+
+        function createDocItemAndAddToList(id, path) {
+            const a = document.createElement('a');
+            const icon = document.createElement('i');
+            const [authorId, name] = path.split('/');
+            const orName = name.substring(name.indexOf('-') + 1);
+
+            a.href = `${rootUrl}/uploads/${authorId}/${name}`;
+            a.target = 'blank';
+            a.innerHTML = `<span>${orName}</span>`;
+            icon.classList.add('fa', 'fa-trash');
+            icon.setAttribute('aria-hidden', 'true');
+            icon.addEventListener('click', event => {
+                event.preventDefault();
+                const numberOfFiles = docList.querySelectorAll('a').length;
+                const message = numberOfFiles == 1 ? 'Xoá file này đồng nghĩa với việc hủy nộp bài' : `Xác nhận xóa file: ${orName}`;
+                
+                if(confirm(message)) {
+                    RequestHandler.sendRequest('ajax/file-from-submitted-exercise', {
+                        attachFileId: id, exerciseId, fileName: name
+                    }, 'DELETE').then(({ e, m, d })=>{
+                        if(e) {
+                            alert(e);
+                            return;
+                        }
+                        if(m == 'ok') {
+                            docList.removeChild(a);
+                        }
+                    }).catch(error => console.log(error));
+                }
+
+                if(message == 'Xoá file này đồng nghĩa với việc hủy nộp bài') {
+                    alert('Đã hủy nộp bài');
+                    document.body.classList.remove('open-modal');
+                    exerciseBoxToUpdate.classList.remove('submitted', 'submitted-late');
+                    exerciseBoxToUpdate.classList.add('unsubmitted');
+                    exerciseStatusToUpdate.classList.remove('submitted', 'submitted-late');
+                    exerciseStatusToUpdate.classList.add('unsubmitted');
+                }
+            });
+
+            a.appendChild(icon);
+            docList.appendChild(a);
+            return a;
+        }
+        
+        inputBox2.innerHTML = `
+        <label for="category-name">TẢI LÊN CÁC FILE BÀI TẬP</label>
+            <div style="display: flex; align-items: center;">
+            <input type="file" name="upload-file" id="upload-file" placeholder="Tải lên..." multiple>
+            <div class="btn">Thêm</div>
+        </div>`;
+        inputBox2.querySelector('.btn').addEventListener('click', ()=>{
+            //Send request upload exercise
+            const inputFile = inputBox2.querySelector('input[type="file"]');
+            const files = inputFile.files;
+
+            if(files.length === 0) {
+                alert('Vui lòng tải lên tệp!');
+                return;
+            }
+
+            RequestHandler.sendRequest('ajax/submit-exercise', {
+                'exerciseId': exerciseId,
+                'files': Array.from(files)
+            }).then(({ e, m ,d }) => {
+                if(e) alert(e);
+                alert(m);
+                const { listOfSubmittedFiles, submissionStatus } = d;
+                listOfSubmittedFiles.forEach(({ id, file_name }) => createDocItemAndAddToList(id, file_name));
+                exerciseBoxToUpdate.classList.remove('submitted', 'submitted-late', 'unsubmitted');
+                exerciseBoxToUpdate.classList.add(submissionStatus);
+                exerciseStatusToUpdate.classList.remove('submitted', 'submitted-late', 'unsubmitted');
+                exerciseStatusToUpdate.classList.add(submissionStatus);
+                inputFile.value = '';
+                deleteBtn.style.display = 'block';
+            }).catch(error => console.error(error));
+        });
+
+        deleteBtn.textContent = 'Hủy nộp bài';
+        deleteBtn.classList.add('btn', 'red');
+        deleteBtn.style.display = this.submittedFiles.length ? 'block' : 'none';
+        deleteBtn.addEventListener('click', () => {
+            if(!confirm(`Xác nhận hủy nộp bài tập "${this.exerciseName}"?`))
+                return;
+
+            //Send request to delete submitted exercise
+            RequestHandler.sendRequest('ajax/submit-exercise', { exerciseId }, 'DELETE')
+            .then(({ e, m, d })=> {
+                if(e) {
+                    alert(e);
+                    return;
+                }
+                if(m == 'ok') {
+                    alert('Đã hủy nộp bài');
+                    document.body.classList.remove('open-modal');
+                    exerciseBoxToUpdate.classList.remove('submitted', 'submitted-late');
+                    exerciseBoxToUpdate.classList.add('unsubmitted');
+                    exerciseStatusToUpdate.classList.remove('submitted', 'submitted-late');
+                    exerciseStatusToUpdate.classList.add('unsubmitted');
+                }
+            }).catch(error => console.log(error));
+        });
+        inputBox3.appendChild(deleteBtn);
+
+        inputs.appendChild(inputBox2);
+        inputs.appendChild(inputBox3);
+
+        container.appendChild(docList);
+        container.appendChild(inputs);
+
+        return container;
+    }
+}
+
 class ModalContent {
     constructor(type, data) {
         this.typeList = {
@@ -624,6 +772,7 @@ class ModalContent {
             'manageStudent': ManageStudent,
             'addExercise': AddExercise,
             'editExercise': EditExercise,
+            'submitExercise': SubmitExercise,
         }
         this.content = new this.typeList[type](data);
         // console.log(type, this.content);

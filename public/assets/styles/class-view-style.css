@@ -83,10 +83,30 @@ body .open-side-nav .chooses {
     margin-block: 5px;
 }
 
+.exercise.submitted:not([open])::after {
+    content: "Đã nộp bài";
+    font-weight: 600;
+    color: green;
+    display: block;
+    background-color: rgba(0, 255, 0, .2);
+    padding: 5px 20px;
+}
+.exercise.submitted-late:not([open])::after {
+    content: "Nộp bài trễ";
+    font-weight: 600;
+    color: rgb(190, 130, 0);
+    display: block;
+    padding: 5px 20px;
+    background-color: rgba(190, 130, 0, .2);
+}
+
 .exercise.unsubmitted:not([open])::after {
-    content: "*Chưa nộp bài";
+    content: "Chưa nộp bài";
     font-weight: 600;
     color: rgb(180, 0, 0);
+    display: block;
+    background-color: rgba(180, 0, 0, 0.2);
+    padding: 5px 20px;
 }
 
 .documents {

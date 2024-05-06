@@ -30,7 +30,6 @@ const userStorage = multer.diskStorage({
 
 const userUploadStorage = multer({ storage: userStorage });
 
-// router.use(middleWares.requireAccessToClass);
 //Lecturer hompage requests
     router.post("/add-class", formUpload.none(), async (req, res) => {
         let e = null,
@@ -211,7 +210,7 @@ const userUploadStorage = multer({ storage: userStorage });
         try {
             const filePathWithSessionUid = `${user.id}/${fileName}`;
             const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
-            console.log(filePath);
+            // console.log(filePath);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             } else {
@@ -569,14 +568,118 @@ const userUploadStorage = multer({ storage: userStorage });
         });
         router.get('/exercise-info');
         router.get('/list-of-students');
+
 //Student classpage requests
     //Executes
-        router.post('/add-file-to-submit-exercise');
-        router.post('/remove-file-from-submit-exercise');
-        router.post('/cancel-submit-exercise');
-        router.post('test');
+        router.post('/submit-exercise', userUploadStorage.array('files'), async (req, res) => {
+            let e = null,
+                m = null,
+                d = null;
+    
+            if (req.session.role != 0) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const exerciseId = req.body['exerciseId'];
+
+            try {
+                const listOfSubmittedFiles = [];
+                const { submitted_exercise_id } = await db.getOrCreateAndGetSubmittedExerciseId(exerciseId, user.id);
+                for (const file of req['files']) {
+                    // console.log(submitted_exercise_id, `${user.id}/${file.filename}`);
+                    const { id, file_name } = await db.attachFileToExercise(submitted_exercise_id, `${user.id}/${file.filename}`);
+                    listOfSubmittedFiles.push({ id, file_name });
+                }
+                const { submission_status } = await db.getExerciseInfoForStudent(exerciseId, user.id);
+                d = { listOfSubmittedFiles, submissionStatus: submission_status }
+                m = 'Nộp bài thành công';
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+    
+            res.json({ e, m, d });
+        });
+        router.delete('/file-from-submitted-exercise', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+            const user = req.session.user;
+            const exerciseId = req.body["exerciseId"];
+            const attachFileId = req.body["attachFileId"];
+            const fileName = req.body["fileName"];
+        
+            try {
+                const filePathWithSessionUid = `${user.id}/${fileName}`;
+                const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
+                // console.log(filePath);
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                } else {
+                    throw new Error('Không tìm thấy file để xóa');
+                }
+                await db.deleteAttachFileOfSubmittedExercise(attachFileId, user.id, exerciseId);
+        
+                m = "ok";
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        });
+        router.delete('/submit-exercise', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+            const user = req.session.user;
+            const exerciseId = req.body["exerciseId"];
+        
+            try {
+                const listOfSubmittedFiles = await db.getSubmittedExerciseFiles(exerciseId, user.id);
+                for (const { file_name } of listOfSubmittedFiles) {
+                    const filePathWithSessionUid = `${user.id}/${file_name.substring(file_name.indexOf('/') + 1)}`;
+                    const filePath = path.join(__dirname, 'public', 'uploads', filePathWithSessionUid);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    } else {
+                        throw new Error('Không tìm thấy file để xóa');
+                    }
+                }
+                await db.unsubmitExercise(exerciseId, user.id);
+        
+                m = "ok";
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        });
+        router.post('/test/:id');
     //Queries
-        router.get('/submited-exercises');
-        router.get('test');
+        router.get('/submit-exercise/:exerciseId', async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 0) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const exerciseId = req.params.exerciseId;
+            const rootUrl = Utils.getRootUrl(req);
+
+            try {
+                const submittedFiles = await db.getSubmittedExerciseFiles(exerciseId, user.id);
+                d = { submittedFiles, rootUrl };
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        });
+        router.get('/test/:id');
 
 module.exports = router;

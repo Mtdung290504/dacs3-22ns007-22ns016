@@ -62,7 +62,8 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    });
+    }); //Add class
+    router.delete('/class'); //Delete class *incomplete
     router.post("/add-doc-category", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -91,7 +92,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    });
+    }); //Create new doc category
     router.post("/get-all-doc-and-doc-categories", async (req, res) => {
         let e = null,
             m = null,
@@ -121,7 +122,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });        
-    });
+    }); //Get object with keys are doc-category id and value is category name and list of doc
     router.post("/get-doc-by-doc-category", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -142,7 +143,7 @@ const userUploadStorage = multer({ storage: userStorage });
             e = "Internal server error";
             console.error(error);
         }
-    });
+    }); //Get list of doc in doc category
     router.post("/add-docs-to-doc-category", userUploadStorage.array('files'), async (req, res) => {
         let e = null,
             m = null,
@@ -174,7 +175,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    });
+    }); //Add new doc to doc category
     router.delete('/doc-category', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const user = req.session.user;
@@ -200,7 +201,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    });
+    }); //Delete all doc from doc category and these file, delete doc category
     router.delete('/doc', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const user = req.session.user;
@@ -225,7 +226,7 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    });
+    }); //Delete doc from doc category and its file
     router.put('/doc-category-name', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const docCategoryId = req.body["docCategoryId"];
@@ -240,10 +241,10 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    });
+    }); //Update category name
     router.post('/add-quest-lib');
-    router.post('/get-quests-by-quest-lib');
-    router.post('/add-quests-to-quest-lib');
+    router.get('/quests-by-quest-lib');
+    router.post('/quests-to-quest-lib');
 
 //Lecturer classpage requests
     //Executes
@@ -270,7 +271,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        });
+        }); //Update class name
         router.get('/student-from-class', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -284,7 +285,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
             
             res.json({ e, m, d });
-        });
+        }); //Get all student from class
         router.post('/student-to-class', userUploadStorage.single('file'), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
         
@@ -389,7 +390,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 console.error(error);
                 res.json({ e, m, d });
             }
-        });
+        }); //Add list of student
         router.delete('/student-from-class', formUpload.none(), async (req, res) => {
             // let [e, m, d] = Array(3).fill(null);
             // const studentId = req.body[""]
@@ -402,7 +403,7 @@ const userUploadStorage = multer({ storage: userStorage });
             // }
         
             // res.json({ e, m, d });
-        });
+        }); //Delete student *incomplete
         router.post('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -445,7 +446,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Add
+        }); //Add ex
         router.put('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -490,7 +491,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Update
+        }); //Update ex
         router.delete('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -529,7 +530,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Delete
+        }); //Delete ex
         router.post('/attach-file-to-class', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const classId = req.body["classId"];
@@ -544,7 +545,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
 
             res.json({ e, m, d });
-        });
+        }); //Attach file
         router.delete('/attach-file-from-class', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const classId = req.body["classId"];
@@ -559,7 +560,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
 
             res.json({ e, m, d });
-        });
+        }); //Remove attach file
     //Queries
         router.get('/exercise/:id', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
@@ -589,8 +590,30 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        });
-        router.get('/submitted-exercise/:exerciseId');
+        }); //Get exercise info for update
+        router.get('/submitted-exercise/:exerciseId', formUpload.none(), async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const exerciseId = req.params.exerciseId;
+
+            try {
+                const listOfStudent = await db.getStudentsSubmissionStatus(classId, exerciseId);
+                d = { listOfStudent };
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+            }
+        
+            res.json({ e, m, d });
+        }); //Get list of submission status for an exercise
 
 //Student classpage requests
     //Executes
@@ -625,7 +648,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
     
             res.json({ e, m, d });
-        });
+        }); //Submit an exercise
         router.delete('/file-from-submitted-exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -651,7 +674,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        });
+        }); //Delete a file in submitted exercise
         router.delete('/submit-exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -677,7 +700,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        });
+        }); //Unsubmit an exercise
         router.post('/test/:id');
     //Queries
         router.get('/submit-exercise/:exerciseId', async (req, res) => {
@@ -702,7 +725,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        });
+        }); //Get list of files in submitted exercise
         router.get('/test/:id');
 
 module.exports = router;

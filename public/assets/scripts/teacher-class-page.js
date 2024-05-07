@@ -106,6 +106,34 @@ function editExercise(event, exerciseId) {
     });
 }
 
+function viewDetailExercise(event, exerciseId) {
+    event.preventDefault();
+    exerciseId = parseInt(exerciseId);
+    const exerciseBox = event.target.closest('.exercise');
+    const exerciseName = exerciseBox.querySelector('summary .exercise-name');
+
+    if (isNaN(exerciseId)) {
+        alert('Lỗi tham số');
+        return;
+    }
+
+    RequestHandler.sendRequest(`ajax/submitted-exercise/${exerciseId}`, {}, 'GET')
+    .then(({ e, m, d }) => {
+        if (e) {
+            alert(e);
+            return;
+        }
+        // console.log(d);
+        d.exerciseId = exerciseId;
+        d.exerciseName = exerciseName;
+        new ModalContent("viewSubmissionStatus", d).buildModalContent(modal);
+        document.body.classList.add("open-modal");
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+}
+
 function editClassName() {
     const newName = prompt('Nhập tên lớp mới', document.querySelector('.class-name').textContent);
     if(newName.length > 49) {

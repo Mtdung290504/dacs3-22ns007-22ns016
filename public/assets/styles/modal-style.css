@@ -435,6 +435,39 @@ ul.doc-ctn li:hover {
     line-height: 1.5;
 }
 
+td.submitted {
+    background-color: rgba(0, 255, 0, .2);
+}
+td.submitted::before {
+    content: "Đã nộp bài";
+    color: green;
+    font-weight: 600;
+    place-items: center;
+    display: grid;
+}
+
+td.submitted-late {
+    background-color: rgba(190, 130, 0, .2);
+}
+td.submitted-late::before {
+    content: "Nộp bài trễ";
+    color: rgb(190, 130, 0);
+    font-weight: 600;
+    place-items: center;
+    display: grid;
+}
+
+td.unsubmitted {
+    background-color: rgb(180, 0, 0, .2);
+}
+td.unsubmitted::before {
+    content: "Chưa nộp bài";
+    color: rgb(180, 0, 0);
+    font-weight: 600;
+    place-items: center;
+    display: grid;
+}
+
 @media screen and (max-width: 730px) {
     body .modal-container .modal {
         width: 90%;

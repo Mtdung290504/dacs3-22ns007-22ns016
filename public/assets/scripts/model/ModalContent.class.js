@@ -220,7 +220,7 @@ class EditClassFileAttaches {
         const containerOfDocList2 = ctn2.querySelector('.documents');
         //CTN2
         for (const categoryId in this.listOfDocCategoryAndDoc) {
-            console.log(categoryId);
+            // console.log(categoryId);
             const { categoryName, listOfDocument } = this.listOfDocCategoryAndDoc[categoryId];
             if(listOfDocument.length == 0) continue;
             const docList = document.createElement('div');
@@ -775,6 +775,61 @@ class SubmitExercise {
     }
 }
 
+class ViewSubmissionStatus {
+    constructor({ exerciseId, exerciseName, listOfStudent }) {
+        this.listOfStudent = listOfStudent;
+        this.exerciseId = exerciseId;
+        this.listOfStudent = listOfStudent;
+        this.title = `Xem tình trạng nộp bài bài tập: "${exerciseName}"`;
+    }
+
+    getModalBodyContent() {
+        const wrapper = document.createElement('div');
+        const [ctn1, ctn2] = Array(2).fill(null).map(item => document.createElement('div'));
+        wrapper.classList.add('wrapper', 'student-manage');
+
+        ctn1.classList.add('ctn');
+        ctn2.classList.add('ctn');
+
+        console.log(this.listOfStudent);
+        ctn1.innerHTML = `<div class="ctn">
+            <table>
+                <tr>
+                    <th>Định danh</th>
+                    <th>Họ và tên</th>
+                    <th>Tình trạng nộp bài</th>
+                </tr>
+            </table>
+        </div>`;
+        const table = ctn1.querySelector('table');
+        this.listOfStudent.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td class="std-id">${student.login_id}</td>
+            <td class="std-name">${student.student_name}</td>
+            <td class="${student.submission_status}"></td>`;
+            table.appendChild(tr);
+        });
+
+        ctn2.innerHTML = `<div class="input-box" style="display: flex; justify-content: center; align-items: center;">
+            <p class="note">Số lượng nộp bài: </p><progress max="${this.listOfStudent.length}" value="${this.listOfStudent.reduce((total, student) => {if(student.submission_status == 'submitted') total++; return total}, 0)}"></progress>
+        </div>
+        <br>
+        <div class="input-box" style="display: flex; justify-content: center;">
+            <a href="" class="btn">Tải xuống toàn bộ bài đã nộp</a>
+        </div>`;
+        const downloadBtn = ctn2.querySelector('.btn');
+        downloadBtn.addEventListener('click', () => {
+            
+        });
+
+        wrapper.appendChild(ctn1);
+        wrapper.appendChild(ctn2);
+
+        return wrapper;
+    }
+}
+
 class ModalContent {
     constructor(type, data) {
         this.typeList = {
@@ -785,6 +840,7 @@ class ModalContent {
             'addExercise': AddExercise,
             'editExercise': EditExercise,
             'submitExercise': SubmitExercise,
+            'viewSubmissionStatus': ViewSubmissionStatus,
         }
         this.content = new this.typeList[type](data);
         // console.log(type, this.content);

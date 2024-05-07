@@ -18,6 +18,10 @@ const modal = document.querySelector('.modal-container');
 modal.addEventListener('click', event => {
     if(Array.from(event.target.classList).includes('modal-container')) {
         document.body.classList.remove('open-modal');
+        if(document.querySelector('.documents')) {
+            unGroupDoc();
+            groupDoc();
+        }
     }
 });
 
@@ -118,4 +122,6 @@ function unGroupDoc() {
     sortedListOfDocument.forEach(document => container.appendChild(document));
 }
 
-groupDoc();
+if(document.querySelector('.documents')) {
+    groupDoc();
+}

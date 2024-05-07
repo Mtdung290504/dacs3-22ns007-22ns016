@@ -441,6 +441,17 @@ class Database {
         }   
     }
 
+    async getStudentsSubmissionStatus(classId, exerciseId) {
+        try {
+            const queryResult = await this.pool.query('CALL get_students_submission_status(?, ?)', [...arguments]);
+            console.log('getStudentsSubmissionStatus - QueryResult:', queryResult, '-----------------------------\n');
+
+            return queryResult[0][0]; //student_id, login_id, student_name, submission_status
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async close() {
         try {
             await this.pool.end();

@@ -14,7 +14,7 @@
 
     <%- include('../common/header', { user, role }) %>
 
-    <div class="body open-side-nav">
+    <div class="body">
         <%- include('../common/nav', { rootUrl, listOfClasses }) %>
 
         <div class="main">
@@ -41,10 +41,13 @@
                     <summary><h3 class="title">BÀI TẬP LỚP</h3></summary>
                     <div class="exercises"><!-- EXERCISES BOX-->
                         <!-- EXERCISE -->
-                        <% exercises.forEach(exercise => { %>
-                            <%- include('./items/exercise-student-view.ejs', { exercise, rootUrl }) %>
-                        <% }) %>
-
+                        <% if (exercises.length == 0) { %>
+                            <h3 style="margin: 10px">CHƯA CÓ BÀI TẬP NÀO</h3>
+                        <% } else { %>
+                            <% exercises.forEach(exercise => { %>
+                                <%- include('./items/exercise-student-view.ejs', { exercise, rootUrl }) %>
+                            <% }) %>
+                        <% } %>
                     </div><!-- END EXERCISES BOX-->
                 </details>
 

@@ -292,6 +292,21 @@ time {
     font-weight: 600;
 }
 
+progress {
+    position: relative;
+    flex: 1; height: 40px;
+}
+
+progress::after {
+    content: attr(value) "/" attr(max) " Sinh viên";
+    display: block;
+    position: absolute;
+    top: 90%; left: 50%;
+    transform: translateX(-50%);
+    color: black;
+    font-weight: 600;
+}
+
 @media screen and (max-width: 730px) {
     .exercises, .test, .documents {
         margin: 5px;

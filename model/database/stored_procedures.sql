@@ -53,6 +53,7 @@ DROP PROCEDURE IF EXISTS get_or_create_n_get_submitted_exercise_id;
 DROP PROCEDURE IF EXISTS delete_submitted_exercise_attach_file;
 DROP PROCEDURE IF EXISTS unsubmit_exercise;
 DROP PROCEDURE IF EXISTS get_students_submission_status;
+DROP PROCEDURE IF EXISTS get_students_submission_status_with_files;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password) **used
@@ -823,6 +824,42 @@ CREATE PROCEDURE get_students_submission_status(
     ) AS sub_ul ON u.id = sub_ul.user_id
     JOIN user_login_id ul ON sub_ul.user_id = ul.user_id AND sub_ul.min_id = ul.id
     WHERE c.id = class_id
+    ORDER BY ul.login_id ASC;
+END $
+
+-- get_students_submission_status_with_files(class_id, exercise_id)
+CREATE PROCEDURE get_students_submission_status_with_files(
+    IN class_id INT,
+    IN exercise_id INT
+)BEGIN
+    SELECT
+        u.id AS student_id,
+        ul.login_id AS login_id,
+        u.name AS student_name,
+        IF(se.exercise_id IS NOT NULL,
+            CASE
+                WHEN MAX(se.submit_time) IS NULL THEN 'unsubmitted'
+                WHEN MAX(se.submit_time) <= e.end_time THEN 'submitted'
+                ELSE 'submitted-late'
+            END,
+            'unsubmitted'
+        ) AS submission_status,
+        GROUP_CONCAT(sef.file_name) AS submitted_files
+    FROM users u
+    JOIN students s ON u.id = s.id
+    JOIN classes_n_students cs ON s.id = cs.student_id
+    JOIN classes c ON cs.class_id = c.id
+    LEFT JOIN submitted_exercises se ON cs.student_id = se.student_id AND se.exercise_id = exercise_id
+    LEFT JOIN exercises e ON se.exercise_id = e.id
+    LEFT JOIN submitted_exercise_attach_file sef ON se.id = sef.submitted_exercises_id
+    JOIN (
+        SELECT user_id, MIN(id) AS min_id
+        FROM user_login_id
+        GROUP BY user_id
+    ) AS sub_ul ON u.id = sub_ul.user_id
+    JOIN user_login_id ul ON sub_ul.user_id = ul.user_id AND sub_ul.min_id = ul.id
+    WHERE c.id = class_id
+    GROUP BY u.id, ul.login_id, u.name, se.exercise_id
     ORDER BY ul.login_id ASC;
 END $
 

@@ -46,11 +46,11 @@ class Utils {
     }
 
     static formatToInputDatetime(value) {
-        return moment(value).format('YYYY-MM-DDTHH:mm')
+        return moment(value).format('YYYY-MM-DDTHH:mm');
     }
 
     static formatToDisplayDatetime(value) {
-        return moment(value).format('DD-MM-YYYY HH:mm')
+        return moment(value).format('DD-MM-YYYY HH:mm:ss');
     }
 }
 

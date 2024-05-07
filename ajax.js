@@ -9,7 +9,7 @@ const { Document } = require("./model/classes/classes");
 const formUpload = multer();
 const db = new Database();
 const xlsx = require('node-xlsx');
-const middleWares = require('./middle-wares');
+const archiver = require('archiver');
 
 const userStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -614,7 +614,101 @@ const userUploadStorage = multer({ storage: userStorage });
         
             res.json({ e, m, d });
         }); //Get list of submission status for an exercise
+        router.get('/submitted-exercise/download/:exerciseId', async (req, res) => {
+            let [e, m, d] = Array(3).fill(null);
+        
+            if (req.session.role != 1) {
+                e = "Bạn không có quyền!";
+                res.json({ e, m, d });
+                return;
+            }
+        
+            const user = req.session.user;
+            const classId = user.accessingClass;
+            const exerciseId = req.params.exerciseId;
+        
+            try {
+                const { class_name } = await db.getClassNameAndMember(classId);
+                const { name } = await db.getExerciseInfoForLecturer(exerciseId);
+                const listOfStudentAndFiles = await db.getStudentsSubmissionStatusWithFiles(classId, exerciseId);
+        
+                // Tạo thư mục tạm thời
+                const tempDirectory = __dirname + `/public/uploads/${user.id}/Bài nộp sinh viên - Bài tập ${name} - Lớp ${class_name} (${Utils.formatToDisplayDatetime(new Date()).replaceAll('/', '-').replaceAll(':', '-')})`;
+                if (!fs.existsSync(tempDirectory)) {
+                    fs.mkdirSync(tempDirectory);
+                }
+        
+                // Tạo thư mục cho từng sinh viên và sao chép các file vào thư mục đó
+                listOfStudentAndFiles.forEach((student) => {
+                    let studentDirectoryName = `${tempDirectory}/${student.login_id}`;
 
+                    if (!student.submitted_files) {
+                        studentDirectoryName += " (Chưa nộp bài)";
+                    }
+
+                    if (!fs.existsSync(studentDirectoryName)) {
+                        fs.mkdirSync(studentDirectoryName);
+                    }
+        
+                    if (student.submitted_files) {
+                        const submittedFiles = student.submitted_files.split(',');
+                        submittedFiles.forEach((filePath) => {
+                            filePath = __dirname + `/public/uploads/${filePath}`;
+
+                            if (fs.existsSync(filePath)) {
+                                const fileName = filePath.split('/').pop();
+                                fs.copyFileSync(filePath, `${studentDirectoryName}/${fileName.substring(fileName.indexOf('-') + 1)}`);
+                            }
+                        });
+                        return;
+                    }
+                });
+        
+                // Nén các thư mục sinh viên thành file zip
+                const output = fs.createWriteStream(`${tempDirectory}.zip`);
+                const archive = archiver('zip', { zlib: { level: 9 } });
+        
+                output.on('close', () => {
+                    console.log(`Zip file created`);
+                    res.download(`${tempDirectory}.zip`, (err) => {
+                        if (err) {
+                            console.error(`Error sending zip file: ${err.message}`);
+                        }
+                        // Xóa thư mục tạm thời sau khi tải xuống xong
+                        fs.rmSync(tempDirectory, { recursive: true }, (err) => {
+                            if (err) {
+                                console.error(`Error removing temp directory: ${err.message}`);
+                            }
+                        });
+                        //Xóa file zip sau khi tải xuống xong
+                        fs.unlinkSync(tempDirectory + '.zip', (err) => {
+                            if (err) {
+                                console.error(`Error removing temp file: ${err.message}`);
+                            }
+                        });
+                    });
+                });
+        
+                archive.on('error', (err) => {
+                    console.error(`Error creating zip file: ${err.message}`);
+                    res.status(500).send('Internal Server Error');
+                    // Xóa thư mục tạm thời nếu có lỗi xảy ra
+                    fs.rmSync(tempDirectory, { recursive: true }, (err) => {
+                        if (err) {
+                            console.error(`Error removing temp directory: ${err.message}`);
+                        }
+                    });
+                });
+        
+                archive.pipe(output);
+                archive.directory(tempDirectory, false);
+                archive.finalize();
+            } catch (error) {
+                e = "Internal server error";
+                console.error(error);
+                res.json({ e, m, d });
+            }
+        }); //Download all submitted exercise of exercise
 //Student classpage requests
     //Executes
         router.post('/submit-exercise', userUploadStorage.array('files'), async (req, res) => {

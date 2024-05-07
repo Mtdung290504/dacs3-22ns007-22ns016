@@ -820,7 +820,8 @@ class ViewSubmissionStatus {
         </div>`;
         const downloadBtn = ctn2.querySelector('.btn');
         downloadBtn.addEventListener('click', () => {
-            
+            // Mở một URL mới để tải xuống file
+            window.open(`/ajax/submitted-exercise/download/${this.exerciseId}`, '_blank');
         });
 
         wrapper.appendChild(ctn1);

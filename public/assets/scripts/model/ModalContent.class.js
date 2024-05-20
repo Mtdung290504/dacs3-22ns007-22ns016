@@ -363,11 +363,12 @@ class ManageStudent {
 
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('classId', getClassId());
             fetch('/ajax/student-to-class', { method: 'POST', body: formData })
             .then(async (response) => {
                 console.log(response);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Response was not ok');
                 }
                 document.body.classList.remove('open-modal');
                 alert('Thêm thành công!');
@@ -456,7 +457,7 @@ class AddExercise {
             const attachFileIds = Array.from(ctn2.querySelectorAll('input.add-exercise-modal-file:checked')).map(input => input.dataset.idFile);
             // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
             RequestHandler.sendRequest('ajax/exercise', {
-                exName, exDes, exStart, exEnd, attachFileIds: JSON.stringify(attachFileIds)
+                classId: getClassId(), exName, exDes, exStart, exEnd, attachFileIds: JSON.stringify(attachFileIds)
             }).then(({ e, m, d }) => {
                 if(e) {
                     alert(e); return;
@@ -566,7 +567,7 @@ class EditExercise {
             const attachFileIds = Array.from(ctn2.querySelectorAll('input.update-exercise-modal-file:checked')).map(input => input.dataset.idFile);
             // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
             RequestHandler.sendRequest('ajax/exercise', {
-                exerciseId: this.exerciseId, exName, exDes,
+                classId: getClassId(), exerciseId: this.exerciseId, exName, exDes,
                 exStart, exEnd, attachFileIds: JSON.stringify(attachFileIds)
             }, 'PUT').then(({ e, m, d }) => {
                 if(e) {
@@ -821,7 +822,7 @@ class ViewSubmissionStatus {
         const downloadBtn = ctn2.querySelector('.btn');
         downloadBtn.addEventListener('click', () => {
             // Mở một URL mới để tải xuống file
-            window.open(`/ajax/submitted-exercise/download/${this.exerciseId}`, '_blank');
+            window.open(`/ajax/class/${getClassId()}/submitted-exercise/download/${this.exerciseId}`, '_blank');
         });
 
         wrapper.appendChild(ctn1);

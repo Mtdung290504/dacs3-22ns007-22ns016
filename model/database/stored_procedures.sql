@@ -54,6 +54,7 @@ DROP PROCEDURE IF EXISTS delete_submitted_exercise_attach_file;
 DROP PROCEDURE IF EXISTS unsubmit_exercise;
 DROP PROCEDURE IF EXISTS get_students_submission_status;
 DROP PROCEDURE IF EXISTS get_students_submission_status_with_files;
+DROP PROCEDURE IF EXISTS get_class_exercise_submission;
 
 delimiter $
 -- signup (is_lecturer, user_name, user_login_name, user_password) **used
@@ -814,7 +815,7 @@ CREATE PROCEDURE get_students_submission_status(
     LEFT JOIN (
         SELECT *
         FROM submitted_exercises
-        WHERE exercise_id = exercise_id
+        WHERE submitted_exercises.exercise_id = exercise_id
     ) se ON cs.student_id = se.student_id
     LEFT JOIN exercises e ON se.exercise_id = e.id
     JOIN (
@@ -861,6 +862,63 @@ CREATE PROCEDURE get_students_submission_status_with_files(
     WHERE c.id = class_id
     GROUP BY u.id, ul.login_id, u.name, se.exercise_id
     ORDER BY ul.login_id ASC;
+END $
+
+-- get_class_exercise_submission(class_id)
+CREATE PROCEDURE get_class_exercise_submission(
+    IN class_id INT
+)BEGIN
+    -- Bước 1: Lấy danh sách tất cả các sinh viên trong lớp
+    CREATE TEMPORARY TABLE temp_students AS
+    SELECT 
+        u.id AS student_id,
+        u.name AS student_name,
+        ul.login_id AS login_id
+    FROM users u
+    JOIN students s ON u.id = s.id
+    JOIN classes_n_students cs ON s.id = cs.student_id
+    JOIN (
+        SELECT user_id, MIN(id) AS min_id
+        FROM user_login_id
+        GROUP BY user_id
+    ) AS sub_ul ON u.id = sub_ul.user_id
+    JOIN user_login_id ul ON sub_ul.user_id = ul.user_id AND sub_ul.min_id = ul.id
+    WHERE cs.class_id = class_id;
+
+    -- Bước 2: Lấy danh sách tất cả các bài tập đã giao trong lớp
+    CREATE TEMPORARY TABLE temp_exercises AS
+    SELECT 
+        e.id AS exercise_id,
+        e.name AS exercise_name,
+        start_time,
+        end_time
+    FROM exercises e
+    WHERE e.class_id = class_id;
+
+    -- Bước 3: Lấy tình trạng nộp bài của mỗi sinh viên cho mỗi bài tập
+    SELECT 
+        ts.student_id,
+        ts.student_name,
+        ts.login_id,
+        te.exercise_id,
+        te.exercise_name,
+        IF(se.exercise_id IS NOT NULL,
+            CASE
+                WHEN se.submit_time IS NULL THEN 'unsubmitted'
+                WHEN se.submit_time <= te.end_time THEN 'submitted'
+                ELSE 'submitted-late'
+            END,
+            'unsubmitted'
+        ) AS submission_status
+    FROM temp_students ts
+    CROSS JOIN temp_exercises te
+    LEFT JOIN submitted_exercises se ON ts.student_id = se.student_id AND te.exercise_id = se.exercise_id
+    LEFT JOIN exercises e ON se.exercise_id = e.id
+    ORDER BY ts.login_id ASC, te.exercise_id ASC;
+
+    -- Xóa các bảng tạm
+    DROP TEMPORARY TABLE IF EXISTS temp_students;
+    DROP TEMPORARY TABLE IF EXISTS temp_exercises;
 END $
 
 -- create_test(class_id, start_time, end_time, name, description, quest_category_id, number_quest_of_tests)
@@ -983,3 +1041,7 @@ CREATE PROCEDURE mark(
 END $
 
 delimiter ;
+
+-- call get_class_exercise_submission(1);
+-- use dacs3v0;call get_students_submission_status(1, 2);
+-- call get_students_submission_status_with_files(1, 3);

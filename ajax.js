@@ -31,6 +31,7 @@ const userStorage = multer.diskStorage({
 const userUploadStorage = multer({ storage: userStorage });
 
 //Lecturer hompage requests
+    // Create new class
     router.post("/add-class", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -62,8 +63,10 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    }); //Add class
-    router.delete('/class'); //Delete class *incomplete
+    });
+    // Delete class *incomplete
+    router.delete('/class');
+    // Create new doc category
     router.post("/add-doc-category", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -92,14 +95,16 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    }); //Create new doc category
-    router.post("/get-all-doc-and-doc-categories", async (req, res) => {
+    });
+    // **Fixed class id
+    // Get object with keys are doc-category id and value is category name and list of doc
+    router.post("/get-all-doc-and-doc-categories", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
             d = null;
 
         const user = req.session.user;
-        const classId = user.accessingClass;
+        const classId = req.body['classId'];
         const rootUrl = Utils.getRootUrl(req);
 
         if (req.session.role != 1) {
@@ -122,7 +127,8 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });        
-    }); //Get object with keys are doc-category id and value is category name and list of doc
+    });
+    // Get list of doc in doc category
     router.post("/get-doc-by-doc-category", formUpload.none(), async (req, res) => {
         let e = null,
             m = null,
@@ -143,7 +149,8 @@ const userUploadStorage = multer({ storage: userStorage });
             e = "Internal server error";
             console.error(error);
         }
-    }); //Get list of doc in doc category
+    });
+    // Add new doc to doc category
     router.post("/add-docs-to-doc-category", userUploadStorage.array('files'), async (req, res) => {
         let e = null,
             m = null,
@@ -175,7 +182,8 @@ const userUploadStorage = multer({ storage: userStorage });
         }
 
         res.json({ e, m, d });
-    }); //Add new doc to doc category
+    });
+    // Delete all doc from doc category and these file, delete doc category
     router.delete('/doc-category', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const user = req.session.user;
@@ -201,7 +209,8 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    }); //Delete all doc from doc category and these file, delete doc category
+    });
+    // Delete doc from doc category and its file
     router.delete('/doc', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const user = req.session.user;
@@ -226,7 +235,8 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    }); //Delete doc from doc category and its file
+    });
+    // Update category name
     router.put('/doc-category-name', formUpload.none(), async (req, res) => {
         let [e, m, d] = Array(3).fill(null);
         const docCategoryId = req.body["docCategoryId"];
@@ -241,13 +251,16 @@ const userUploadStorage = multer({ storage: userStorage });
         }
     
         res.json({ e, m, d });
-    }); //Update category name
+    });
+    // Incomplete functions
     router.post('/add-quest-lib');
     router.get('/quests-by-quest-lib');
     router.post('/quests-to-quest-lib');
 
 //Lecturer classpage requests
     //Executes
+        // **Fixed class id
+        // Update class name
         router.put('/class-name', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -257,9 +270,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 return;
             }
 
-            const user = req.session.user;
-            const classId = user.accessingClass;
-            const newName = req.body['newName'];
+            const { classId, newName } = req.body;
             
             // console.log(exName, exDes, exStart, exEnd, attachFileIds);
             try {
@@ -271,11 +282,13 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Update class name
-        router.get('/student-from-class', async (req, res) => {
+        });
+        // **Fixed class id
+        // Get all student from class
+        router.get('/student-from-class/:classId', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
-            const user = req.session.user;
-            const classId = user.accessingClass;
+            const classId = req.params.classId;
+            console.log(classId);
 
             try {
                 d = await db.getAllClassMember(classId);
@@ -285,26 +298,27 @@ const userUploadStorage = multer({ storage: userStorage });
             }
             
             res.json({ e, m, d });
-        }); //Get all student from class
-        router.post('/student-to-class', userUploadStorage.single('file'), async (req, res) => {
+        });
+        // **Fixed class id
+        // Add list of student
+        router.post('/student-to-class', userUploadStorage.fields([{ name: 'file', maxCount: 1 }, { name: 'classId', maxCount: 1 }]), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
-        
-            if (!req.file) {
+
+            if (!req.files['file']) {
                 e = 'Vui lòng tải lên file';
                 res.json({ e, m, d });
                 return;
             }
-
-            const file = req.file;
+        
+            const file = req.files['file'][0];
             const user = req.session.user;
-            const classId = user.accessingClass;
+            const { classId } = req.body;
             const workSheetsFromFile = xlsx.parse(file.path);
             const sheet = workSheetsFromFile[0].data;
             const studentIdCaches = [];
             const studentsWithPasswords = [];
             const promises = [];
 
-            //Code insert song song (mới)
             for (const row of sheet.slice(1)) {
                 if (studentIdCaches.includes(row[0]))
                     continue;
@@ -315,57 +329,23 @@ const userUploadStorage = multer({ storage: userStorage });
                     password: Utils.generateRandomPassword(),
                     note: ''
                 };
-                const promise = db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId)
-                    .catch(error => {
-                        const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
-                        const errorCode = errorMessages.indexOf(error.message);
-                        if (errorCode === 0 || errorCode === 1) {
-                            student.password = '';
-                            student.note = errorMessages[errorCode];
-                            // console.log(student.note);
-                        } else {
-                            throw error;
-                        }
-                    });
+                const promise = db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId).catch(error => {
+                    const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
+                    const errorCode = errorMessages.indexOf(error.message);
+                    if (errorCode === 0 || errorCode === 1) {
+                        student.password = '';
+                        student.note = errorMessages[errorCode];
+                        // console.log(student.note);
+                    } else {
+                        throw error;
+                    }
+                });
             
                 promises.push(promise);
                 studentsWithPasswords.push(student);
             }
 
             try {
-                // Bỏ qua hàng đầu tiên (tiêu đề cột)
-                //Code insert tuần tự
-                // for (const row of sheet.slice(1)) {
-                //     if(studentIdCaches.includes(row[0]))
-                //         continue;
-                //     studentIdCaches.push(row[0]);
-                //     const student = {
-                //         id: row[0],
-                //         name: row[1].toUpperCase(),
-                //         password: Utils.generateRandomPassword(),
-                //         note: ''
-                //     };
-                //     try {
-                //         await db.signUpAndAddStudentToClass(student.name, student.id, student.password, classId);
-                //     } catch (error) {
-                //         const errorMessages = ['Sinh viên đã có mặt trong lớp', 'Sinh viên đã có tài khoản từ trước'];
-                //         const errorCode = errorMessages.indexOf(error.message);
-                //         if(errorCode == 0) {
-                //             student.password = '';
-                //             student.note = errorMessages[errorCode];
-                //             console.log(student.note)
-                //         } else if(errorCode == 1) {
-                //             student.password = '';
-                //             student.note = errorMessages[errorCode];
-                //             console.log(student.note)
-                //         } else {
-                //             throw error;
-                //         }
-                //     }
-
-                //     studentsWithPasswords.push(student);
-                // }
-
                 await Promise.all(promises);
 
                 // Tạo file Excel mới
@@ -390,7 +370,8 @@ const userUploadStorage = multer({ storage: userStorage });
                 console.error(error);
                 res.json({ e, m, d });
             }
-        }); //Add list of student
+        });
+        // Delete student *incomplete
         router.delete('/student-from-class', formUpload.none(), async (req, res) => {
             // let [e, m, d] = Array(3).fill(null);
             // const studentId = req.body[""]
@@ -403,7 +384,9 @@ const userUploadStorage = multer({ storage: userStorage });
             // }
         
             // res.json({ e, m, d });
-        }); //Delete student *incomplete
+        });
+        // **Fixed class id
+        // Create exercise
         router.post('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -413,8 +396,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 return;
             }
 
-            const user = req.session.user;
-            const classId = user.accessingClass;
+            const classId = req.body['classId'];
             const exName = req.body['exName'], 
                     exDes = req.body['exDes'],
                     exStart = Utils.formatToSqlDatetime(req.body['exStart']), 
@@ -446,7 +428,9 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Add ex
+        });
+        // **Fixed class id
+        // Update exercise
         router.put('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -456,8 +440,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 return;
             }
 
-            const user = req.session.user;
-            const classId = user.accessingClass;
+            const classId = req.body['classId'];
             const exerciseId = req.body['exerciseId'],
                     exName = req.body['exName'], 
                     exDes = req.body['exDes'],
@@ -491,7 +474,8 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Update ex
+        });
+        // Delete exercise
         router.delete('/exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -501,7 +485,6 @@ const userUploadStorage = multer({ storage: userStorage });
                 return;
             }
 
-            const user = req.session.user;
             const exerciseId = req.body['exerciseId'];
 
             try {
@@ -530,7 +513,9 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Delete ex
+        });
+        // **Fixed class id
+        // Attach file
         router.post('/attach-file-to-class', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const classId = req.body["classId"];
@@ -545,7 +530,9 @@ const userUploadStorage = multer({ storage: userStorage });
             }
 
             res.json({ e, m, d });
-        }); //Attach file
+        });
+        // **Fixed class id
+        // Remove attach file
         router.delete('/attach-file-from-class', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const classId = req.body["classId"];
@@ -560,8 +547,9 @@ const userUploadStorage = multer({ storage: userStorage });
             }
 
             res.json({ e, m, d });
-        }); //Remove attach file
+        });
     //Queries
+        // Get exercise info for update
         router.get('/exercise/:id', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -590,8 +578,10 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Get exercise info for update
-        router.get('/submitted-exercise/:exerciseId', formUpload.none(), async (req, res) => {
+        });
+        // **Fixed class id
+        // Get list of submission status for an exercise
+        router.get('/class/:classId/submitted-exercise/:exerciseId', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
             if (req.session.role != 1) {
@@ -600,8 +590,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 return;
             }
 
-            const user = req.session.user;
-            const classId = user.accessingClass;
+            const classId = req.params.classId;
             const exerciseId = req.params.exerciseId;
 
             try {
@@ -613,8 +602,10 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Get list of submission status for an exercise
-        router.get('/submitted-exercise/download/:exerciseId', async (req, res) => {
+        });
+        // **Fixed class id
+        // Download all submitted exercise of exercise
+        router.get('/class/:classId/submitted-exercise/download/:exerciseId', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
         
             if (req.session.role != 1) {
@@ -624,7 +615,7 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             const user = req.session.user;
-            const classId = user.accessingClass;
+            const classId = req.params.classId;
             const exerciseId = req.params.exerciseId;
         
             try {
@@ -633,7 +624,7 @@ const userUploadStorage = multer({ storage: userStorage });
                 const listOfStudentAndFiles = await db.getStudentsSubmissionStatusWithFiles(classId, exerciseId);
         
                 // Tạo thư mục tạm thời
-                const tempDirectory = __dirname + `/public/uploads/${user.id}/Bài nộp sinh viên - Bài tập ${name} - Lớp ${class_name} (${Utils.formatToDisplayDatetime(new Date()).replaceAll('/', '-').replaceAll(':', '-')})`;
+                const tempDirectory = __dirname + `/public/uploads/${user.id}/Bài nộp sinh viên - Bài tập ${Utils.formatFileName(name)} - Lớp ${Utils.formatFileName(class_name)} (${Utils.formatFileName(Utils.formatToDisplayDatetime(new Date()))})`;
                 if (!fs.existsSync(tempDirectory)) {
                     fs.mkdirSync(tempDirectory);
                 }
@@ -708,9 +699,10 @@ const userUploadStorage = multer({ storage: userStorage });
                 console.error(error);
                 res.json({ e, m, d });
             }
-        }); //Download all submitted exercise of exercise
+        });
 //Student classpage requests
     //Executes
+        // Submit an exercise
         router.post('/submit-exercise', userUploadStorage.array('files'), async (req, res) => {
             let e = null,
                 m = null,
@@ -742,7 +734,8 @@ const userUploadStorage = multer({ storage: userStorage });
             }
     
             res.json({ e, m, d });
-        }); //Submit an exercise
+        });
+        // Delete a file in submitted exercise
         router.delete('/file-from-submitted-exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -768,7 +761,8 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Delete a file in submitted exercise
+        });
+        // Unsubmit an exercise
         router.delete('/submit-exercise', formUpload.none(), async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
             const user = req.session.user;
@@ -794,9 +788,11 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Unsubmit an exercise
+        });
+        // Incomplete functions
         router.post('/test/:id');
     //Queries
+        // Get list of files in submitted exercise
         router.get('/submit-exercise/:exerciseId', async (req, res) => {
             let [e, m, d] = Array(3).fill(null);
 
@@ -819,7 +815,8 @@ const userUploadStorage = multer({ storage: userStorage });
             }
         
             res.json({ e, m, d });
-        }); //Get list of files in submitted exercise
+        });
+        // Incomplete functions
         router.get('/test/:id');
 
 module.exports = router;

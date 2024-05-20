@@ -73,11 +73,6 @@ class Student extends User {
     constructor(id, name, phoneNumber, email) {
         super(...arguments);
     }
-
-    withIdentify(identify) {
-        this.identify = identify;
-        return this;
-    }
 }
 
 class Class {

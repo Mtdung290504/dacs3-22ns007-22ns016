@@ -52,6 +52,10 @@ class Utils {
     static formatToDisplayDatetime(value) {
         return moment(value).format('DD-MM-YYYY HH:mm:ss');
     }
+
+    static formatFileName(name) {
+        return name.replace(/"/g, "'").replace(/[\\/:*?"<>|]/g, '-');
+    }
 }
 
 module.exports = Utils;

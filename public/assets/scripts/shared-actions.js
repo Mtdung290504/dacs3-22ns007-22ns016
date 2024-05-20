@@ -87,6 +87,11 @@ function groupDoc() {
     const listOfDocument = container.querySelectorAll('a[data-file-id]');
     const docCategoryAndDoc = {};
 
+    if(container.querySelector('h3')) return;
+    if(container.childElementCount === 0) {
+        container.innerHTML = '<h3 style="margin: 10px">CHƯA CÓ TÀI LIỆU NÀO</h3>';
+    }
+    
     container.innerHTML = '';
 
     listOfDocument.forEach(document => {
@@ -120,6 +125,9 @@ function unGroupDoc() {
 
     const sortedListOfDocument = Array.from(listOfDocument).sort((a, b) => a.textContent.localeCompare(b.textContent));
     sortedListOfDocument.forEach(document => container.appendChild(document));
+    if(container.childElementCount === 0) {
+        container.innerHTML = '<h3 style="margin: 10px">CHƯA CÓ TÀI LIỆU NÀO</h3>';
+    }
 }
 
 if(document.querySelector('.documents')) {

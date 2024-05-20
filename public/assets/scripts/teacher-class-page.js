@@ -6,7 +6,7 @@ const [btnManageClassDocument, btnManageStudent, btnAddExercise] = [
 
 btnManageClassDocument.addEventListener("click", () => {
     resetModal();
-    RequestHandler.sendRequest("ajax/get-all-doc-and-doc-categories", {})
+    RequestHandler.sendRequest("ajax/get-all-doc-and-doc-categories", { classId: getClassId() })
         .then(({ e, m, d }) => {
             if (e) {
                 alert(e);
@@ -23,7 +23,7 @@ btnManageClassDocument.addEventListener("click", () => {
 
 btnManageStudent.addEventListener("click", () => {
     resetModal();
-    RequestHandler.sendRequest("ajax/student-from-class", {}, "GET")
+    RequestHandler.sendRequest(`ajax/student-from-class/${getClassId()}`, {}, "GET")
         .then(({ e, m, d }) => {
             if (e) {
                 alert(e);
@@ -40,7 +40,7 @@ btnManageStudent.addEventListener("click", () => {
 
 btnAddExercise.addEventListener("click", () => {
     resetModal();
-    RequestHandler.sendRequest("ajax/get-all-doc-and-doc-categories", {})
+    RequestHandler.sendRequest("ajax/get-all-doc-and-doc-categories", { classId: getClassId() })
         .then(({ e, m, d }) => {
             if (e) {
                 alert(e);
@@ -110,14 +110,14 @@ function viewDetailExercise(event, exerciseId) {
     event.preventDefault();
     exerciseId = parseInt(exerciseId);
     const exerciseBox = event.target.closest('.exercise');
-    const exerciseName = exerciseBox.querySelector('summary .exercise-name');
+    const exerciseName = exerciseBox.querySelector('summary .exercise-name').textContent;
 
     if (isNaN(exerciseId)) {
         alert('Lỗi tham số');
         return;
     }
 
-    RequestHandler.sendRequest(`ajax/submitted-exercise/${exerciseId}`, {}, 'GET')
+    RequestHandler.sendRequest(`ajax/class/${getClassId()}/submitted-exercise/${exerciseId}`, { classId: getClassId() }, 'GET')
     .then(({ e, m, d }) => {
         if (e) {
             alert(e);
@@ -136,12 +136,15 @@ function viewDetailExercise(event, exerciseId) {
 
 function editClassName() {
     const newName = prompt('Nhập tên lớp mới', document.querySelector('.class-name').textContent);
+    if(!newName) {
+        return;
+    }
     if(newName.length > 49) {
         alert('Tên lớp quá dài');
         return;
     }
 
-    RequestHandler.sendRequest('ajax/class-name', {newName}, 'PUT')
+    RequestHandler.sendRequest('ajax/class-name', { classId: getClassId(), newName }, 'PUT')
     .then(({ e, m, d }) => {
         if(e) {
             alert(e);

@@ -15,8 +15,8 @@ module.exports = {
             await db.checkClassExistence(req.params.id);
             return next();
         } catch (error) {
-            // res.send(`<h3 style="color: red">${error.message}</h3>`);
-            res.redirect('/');
+            res.send(`<h3 style="color: red">${error.message}</h3>`);
+            // res.redirect('/');
         }
     },
 
@@ -25,9 +25,9 @@ module.exports = {
             await db.checkAccessToClass(req.session.user.id, req.params.id);
             return next();
         } catch (error) {
-            // res.send(`<h3 style="color: red">${error.message}</h3>`);
+            res.send(`<h3 style="color: red">${error.message}</h3>`);
             // res.redirect('/');
-            res.json({ e: 'Bạn không có quyền truy cập!', m: null, d: null });
+            // res.json({ e: 'Bạn không có quyền truy cập!', m: null, d: null });
         }
     }
 }

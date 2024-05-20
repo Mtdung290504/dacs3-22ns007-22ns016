@@ -35,3 +35,9 @@ class RequestHandler {
         }
     }
 }
+
+function getClassId(url = window.location.href) {
+    return parseInt(url.split('class/')[1]) || (() => {
+        throw new Error('Class id not found!');
+    })();
+}

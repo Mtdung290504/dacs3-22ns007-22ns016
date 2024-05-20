@@ -24,11 +24,6 @@ app.use(
 );
 app.set("view engine", "ejs");
 
-app.get('/t' , (req , res)=>{
-    const data = { userName: 'alo', phoneNumber: '0123456789', class: 10 };
-    res.render('tests/testdata', data)
-});
-
 app.get("/login", (req, res) => {
     if (req.session.user) {
         res.redirect("/");
@@ -102,15 +97,14 @@ app.use(middleWares.requireLogin);
 
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
-        if (err) console.error("Error destroying session:", err);
-
+        if (err) 
+            console.error("Error destroying session:", err);
         res.redirect("/login");
     });
 });
 
 app.get("/", async (req, res) => {
     const user = req.session.user;
-    user.accessingClass = null;
     const role = req.session.role;
     const roles = ['SV', 'GV'];
     const rootUrl = Utils.getRootUrl(req);

@@ -454,6 +454,12 @@ class AddExercise {
             const [exName, exDes, exStart, exEnd] = ['name', 'descriptions', 'start-time', 'end-time'].map(selector => {
                 return ctn1.querySelector('#ex-' + selector).value;
             });
+
+            if(new Date(exStart) > new Date(exEnd)) {
+                alert('Thời gian kết thúc bài tập phải sau thời gian nó bắt đầu!');
+                return;
+            }
+
             const attachFileIds = Array.from(ctn2.querySelectorAll('input.add-exercise-modal-file:checked')).map(input => input.dataset.idFile);
             // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
             RequestHandler.sendRequest('ajax/exercise', {
@@ -564,6 +570,12 @@ class EditExercise {
             const [exName, exDes, exStart, exEnd] = ['name', 'descriptions', 'start-time', 'end-time'].map(selector => {
                 return ctn1.querySelector('#ex-' + selector).value;
             });
+
+            if(new Date(exStart) > new Date(exEnd)) {
+                alert('Thời gian kết thúc bài tập phải sau thời gian nó bắt đầu!');
+                return;
+            }
+
             const attachFileIds = Array.from(ctn2.querySelectorAll('input.update-exercise-modal-file:checked')).map(input => input.dataset.idFile);
             // console.log([exName, exDes, exStart, exEnd, attachFileIds]);
             RequestHandler.sendRequest('ajax/exercise', {
@@ -813,7 +825,7 @@ class ViewSubmissionStatus {
         });
 
         ctn2.innerHTML = `<div class="input-box" style="display: flex; justify-content: center; align-items: center;">
-            <p class="note">Số lượng nộp bài: </p><progress max="${this.listOfStudent.length}" value="${this.listOfStudent.reduce((total, student) => {if(student.submission_status == 'submitted') total++; return total}, 0)}"></progress>
+            <p class="note">Số lượng nộp bài: </p><progress max="${this.listOfStudent.length}" value="${this.listOfStudent.reduce((total, student) => {if(['submitted-late', 'submitted'].includes(student.submission_status)) total++; return total}, 0)}"></progress>
         </div>
         <br>
         <div class="input-box" style="display: flex; justify-content: center;">
